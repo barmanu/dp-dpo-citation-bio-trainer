@@ -1,0 +1,62 @@
+[tool.poetry]
+name = "dp_dpo_citation_bio_trainer"
+version = "0.1.0"
+description = "This is dp_dpo_citation_bio_trainer library"
+authors = ["utsab barman <u.barman@elsevier.com>"]
+readme = "README.md"
+homepage = "https://github.com/elsevier-research/dp-dpo-citation-bio-trainer"
+repository = "https://github.com/elsevier-research/dp-dpo-citation-bio-trainer"
+keywords = ["dp_dpo_citation_bio_trainer"]
+
+[[tool.poetry.source]]
+name = "dp-caps-repository"
+url = "https://rt.artifactory.tio.systems/artifactory/api/pypi/pypi-dp-caps-local/simple"
+
+[tool.poetry.dependencies]
+python = "~3.7"
+boto3 = "^1.13.25"
+pandas = "^1.0.4"
+mlflow = "^1.8.0"
+tensorflow = "^2.2.0"
+tensorflow-hub = "^0.8.0"
+spacy = {extras = ["en_core_web_sm"], version = "^2.2.4"}
+en-core-web-sm = {url = "https://github.com/explosion/spacy-models/releases/download/en_core_web_sm-2.2.0/en_core_web_sm-2.2.0.tar.gz"}
+keras = "^2.3.1"
+dask = {extras = ["dataframe"], version = "^2.18.1"}
+gitpython = "^3.1.3"
+sklearn = "^0.0"
+matplotlib = "^3.2.1"
+
+[tool.poetry.dev-dependencies]
+pytest = "^5.2"
+pytest-html = "^2.1.0"
+pytest-cov = "^2.8.1"
+black = "^19.10b0"
+flake8 = "^3.7.9"
+mypy = "^0.770"
+pre-commit = "^2.1.1"
+
+[tool.black]
+line-length = 79
+target-version = ['py36', 'py37', 'py38']
+include = '\.pyi?$'
+exclude = '''
+/(
+    \.eggs
+  | \.git
+  | \.hg
+  | \.mypy_cache
+  | \.tox
+  | \.venv
+  | _build
+  | buck-out
+  | build
+  | dist
+  | tests/resources
+  | tests/docker
+)/
+'''
+
+[build-system]
+requires = ["poetry>=0.12"]
+build-backend = "poetry.masonry.api"
