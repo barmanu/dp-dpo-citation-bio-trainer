@@ -1,6 +1,6 @@
 {
   "s3_bucket": "manuscript64k",
-  "s3_dir": "other_refs/artificial_data/2020-06-09~06:31:13.116528",
-  "local_dir": "2020-06-09~06:31:13.116528",
+  "s3_dir": "other_refs/artificial_data/2020-06-08~15:13:57.766608",
+  "local_dir": "2020-06-08~15:13:57.766608",
   "training_file_prefix": "data-2020"
 }
