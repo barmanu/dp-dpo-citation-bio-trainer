@@ -41,10 +41,10 @@ def get_name_from_dict(d: dict):
 
 
 def reset_random_seeds():
-    os.environ['PYTHONHASHSEED'] = str(1)
-    tf.random.set_seed(1)
-    np.random.seed(1)
-    random.seed(1)
+    os.environ['PYTHONHASHSEED'] = str(123)
+    tf.random.set_seed(123)
+    np.random.seed(123)
+    random.seed(123)
 
 
 def main():
@@ -84,9 +84,9 @@ def main():
     )
 
     parser.add_argument(
-        "--store-at-server",
+        "--store-at-mlflow-server",
         dest="store_at_server",
-        default=False,
+        default=True,
         help="to store data and artifacts or not"
     )
 
@@ -95,9 +95,6 @@ def main():
     # init: name, output-dir, timestamp
     repo = git.Repo(search_parent_directories=True)
     exp_name = repo.remote("origin").url
-    if args.store_at_server:
-        mlflow.set_tracking_uri(args.mlflow_server)
-        mlflow.set_experiment(exp_name)
 
     # data config loaded
     data_config = None
@@ -142,15 +139,10 @@ def main():
     # train/test split recognition from model_config
     train_count = model_config["train_per"] * len(input_files)
     train_count = min(len(input_files) - 1, train_count)
-    if args.store_at_server:
-        mlflow.log_param("train_count", train_count)
-        mlflow.log_param("test_count", (len(input_files) - train_count))
 
     feature_config["output_dir"] = args.output
     feature_config["train_count"] = train_count
     feature_config["test_count"] = (len(input_files) - train_count)
-
-    # logg in mlflow
 
     feature_suffix = get_name_from_dict(feature_config)
 
@@ -187,15 +179,42 @@ def main():
 
     path = os.path.join(args.output, "training.history.csv")
     history_df.to_csv(path)
-    if args.store_at_server:
-        mlflow.log_artifact(path)
 
     temp = {
-        "epoch": [i for i in range(len(metrics))],
-        "test_binray_accuracy": metrics
+        "epoch": [i for i in range(len(metrics[0]))],
+        "loss": metrics[0],
+        "accuracy": metrics[1],
+        "ser": metrics[2],
+        "jer": metrics[3]
     }
+
+    if args.store_at_server:
+        mlflow.set_tracking_uri(args.mlflow_server)
+        mlflow.set_experiment(exp_name)
+        for i in range(len(metrics[0])):
+
+            mlflow.start_run()
+            d = dict(load_json(os.path.join(args.output, "data-gen-config.json")))
+            for k, v in d.items():
+                if "/" not in v and "*" not in v:
+                    mlflow.log_param("dsata-gen-" + str(v), k)
+            print("\n")
+            mlflow.set_tag("features", feature_suffix)
+            for k, v in model_config.items():
+                if type(v) == str or type(v) == float or type(v) == int:
+                    if "epoch" not in k:
+                        mlflow.log_param(k, v)
+            mlflow.log_param("train_count", train_count)
+            mlflow.log_param("test_count", (len(input_files) - train_count))
+            mlflow.log_param("epoch", i + 1)
+            mlflow.log_metric("loss", metrics[0][i])
+            mlflow.log_metric("accuracy", metrics[1][i])
+            mlflow.log_metric("ser", metrics[2][i])
+            mlflow.log_metric("jer", metrics[3][i])
+            mlflow.end_run()
+
     tdf = pd.DataFrame(temp)
-    fig = tdf.plot(x="epoch", y="test_binray_accuracy").get_figure()
+    fig = tdf.plot(x="epoch", y=["loss", "accuracy", "ser", "jer"]).get_figure()
     path = os.path.join(args.output, "training.history.png")
     fig.savefig(path)
 

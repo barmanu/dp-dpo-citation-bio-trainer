@@ -26,6 +26,7 @@ dask = {extras = ["dataframe"], version = "^2.18.1"}
 gitpython = "^3.1.3"
 sklearn = "^0.0"
 matplotlib = "^3.2.1"
+mlflow-extend = "^0.1.6"
 
 [tool.poetry.dev-dependencies]
 pytest = "^5.2"

@@ -1,6 +1,6 @@
 {
   "input_dim": -1,
-  "hidden_dim": 50,
+  "hidden_dim": 64,
   "output_dim": -1,
   "lr": 0.05,
   "clip": 0.0,
@@ -8,15 +8,12 @@
   "beta2": 0.999,
   "l1": 0.000,
   "l2": 0.00,
-  "drop_rate": 0.01,
+  "drop_rate": 0.00,
   "batch": 64,
-  "epoch": 55,
+  "epoch": 5,
   "crf": false,
   "rnn": true,
   "num_of_rnn": 1,
   "train_per": 0.9,
-  "val_per": 0.1,
-  "problem_type": [
-    "extra"
-  ]
+  "val_per": 0.1
 }

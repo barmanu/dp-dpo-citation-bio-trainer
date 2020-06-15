@@ -1,6 +1,6 @@
 # dp-dpo-citation-bio-trainer
 
-The dp-dpo-citation-bio-trainer is a python based library.
+The dp-dpo-citation-bio-trainer is a python based library. 
 
 ### Pre-requisites
 - Python 3.7
@@ -19,6 +19,14 @@ tools, which perform code formatting. Make sure to add the formatted files to gi
 
 ### Run tests
 `$ poetry run pytest`
+
+
+### Run
+
+Start poetry shell using - `poetry shell` and run -
+
+`$ python Run.py --output-dir <output_dir> --data-config <data_config_json> --feature-config <feature_config_json> --model-config <model_config_json> `
+
 
 ### Versioning
 The dp-dpo-citation-bio-trainer is using the [semantic versioning scheme](https://semver.org/). The initial version is `0.1.0`. 

@@ -36,19 +36,14 @@ class Metrics(callbacks.Callback):
         vx = self.validation_data[0]
         vy = self.validation_data[1]
         vx = np.array(vx)
-        vy = np.array(self.validation_data[1])
         pred_y = None
-        if "extra" in self.model.name:
-            pred_y, _ = self.model.predict(vx)
-        else:
-            pred_y = self.model.predict(vx)
-        py = []
-        for ys in pred_y:
-            for y in ys:
-                if y > 0.5:
-                    py.append(1)
-                else:
-                    py.append(0)
+        # if "extra" in self.model.name:
+        #     pred_y, _ = self.model.predict(vx)
+        # else:
+        #
+        pred_y = self.model.predict(vx)
+        py = np.argmax(pred_y, axis=-1)
+        vy = np.argmax(vy, axis=-1)
         vy = np.array(vy).flatten()
         py = np.array(py).flatten()
         ser, jer = calulate_ser_jer(vy, py, 1)
@@ -115,20 +110,20 @@ class BIOLSTM:
 
         dense = TimeDistributed(
             Dense(
-                1,
-                activation='sigmoid',
+                2,
+                activation='softmax',
             ),
             name="output"
         )
         dense_ = None
-        if "extra" in self.problem_type:
-            dense_ = TimeDistributed(
-                Dense(
-                    2,
-                    activation='softmax',
-                ),
-                name="extra"
-            )
+        # #if "extra" in self.problem_type:
+        # #dense_ = TimeDistributed(
+        #         Dense(
+        #             2,
+        #             activation='softmax',
+        #         ),
+        #         name="extra"
+        #     )
 
         optim = Adam(learning_rate=self.lr, beta_1=self.beta1, beta_2=self.beta2, amsgrad=False)
 
@@ -145,39 +140,40 @@ class BIOLSTM:
                     )(x)
 
         outputs = dense(x)
-        if "extra" in self.problem_type:
-            extra = dense_(x)
-            model = Model(
-                inputs=inputs,
-                outputs=[outputs, extra],
-                name=self.name
-            )
-            model.compile(
-                optimizer=optim,
-                loss={
-                    "output": "mean_squared_error",
-                    "extra": "binary_crossentropy"
-                },
-                metrics={
-                    "output": "binary_accuracy",
-                    "extra": "binary_accuracy"
-                },
-            )
-        else:
-            model = Model(
-                inputs=inputs,
-                outputs=outputs,
-                name=self.name
-            )
-            model.compile(
-                optimizer=optim,
-                loss={
-                    "output": "mean_squared_error"
-                },
-                metrics={
-                    "output": "binary_accuracy"
-                },
-            )
+        # if "extra" in self.problem_type:
+        #     extra = dense_(x)
+        #     model = Model(
+        #         inputs=inputs,
+        #         outputs=[outputs, extra],
+        #         name=self.name
+        #     )
+        #     model.compile(
+        #         optimizer=optim,
+        #         loss={
+        #             "output": "binary_crossentropy",
+        #             "extra": "binary_crossentropy"
+        #         },
+        #         metrics={
+        #             "output": "binary_accuracy",
+        #             "extra": "binary_accuracy"
+        #         },
+        #     )
+        # else:
+        #
+        model = Model(
+            inputs=inputs,
+            outputs=outputs,
+            name=self.name
+        )
+        model.compile(
+            optimizer=optim,
+            loss={
+                "output": "mean_squared_error"
+            },
+            metrics={
+                "output": "binary_accuracy"
+            },
+        )
 
         model.summary()
         return model
@@ -295,35 +291,40 @@ class BIOLSTM:
         test_extra_y = to_categorical(y=test_data["y"], num_classes=2)
         history = None
 
-        if "extra" in self.problem_type:
-            history = model.fit(
-                x=train_data["x"],
-                y=[train_data["y"], train_extra_y],
-                validation_data=(test_data["x"], [test_data["y"], test_extra_y]),
-                batch_size=batch,
-                epochs=epoch,
-                verbose=verbose,
-                callbacks=[valid_metrics]
-            )
-        else:
-            history = model.fit(
-                x=train_data["x"],
-                y=train_data["y"],
-                validation_data=(test_data["x"], test_data["y"]),
-                batch_size=batch,
-                epochs=epoch,
-                verbose=verbose,
-                callbacks=[valid_metrics]
-            )
+        # if "extra" in self.problem_type:
+        #     history = model.fit(
+        #         x=train_data["x"],
+        #         y=[train_data["y"], train_extra_y],
+        #         validation_data=(test_data["x"], [test_data["y"], test_extra_y]),
+        #         batch_size=batch,
+        #         epochs=epoch,
+        #         verbose=verbose,
+        #         callbacks=[valid_metrics]
+        #     )
+        # else:
+        #
+        history = model.fit(
+            x=train_data["x"],
+            y=train_data["y"],
+            validation_data=(test_data["x"], test_data["y"]),
+            batch_size=batch,
+            epochs=epoch,
+            verbose=verbose,
+            callbacks=[valid_metrics]
+        )
         model_store.append(model)
         train_history = pd.DataFrame(history.history)
+        train_history.rename(columns={train_history.columns[0]: "epoch"}, inplace=True)
+        # train_history.plot(x="epoch", y=["val_loss", "val_output_binary_accuracy", "val_ser", "val_jer"])
+
         # mlflow.log_metric("SER", rdict["ser"])
         # mlflow.log_metric("JER", rdict["jer"])
 
-        if "extra" in self.problem_type:
-            metrics = history.history["val_output_binary_accuracy"]
-        else:
-            metrics = history.history["val_binary_accuracy"]
+        # if "extra" in self.problem_type:
+        #     metrics = (history.history["val_loss"], history.history["val_output_binary_accuracy"], history.history["val_ser"], history.history["val_jer"])
+        # else:
+        metrics = (history.history["val_loss"], history.history["val_binary_accuracy"], history.history["val_ser"],
+                   history.history["val_jer"])
         # mlflow.log_metric("Binaray_Accuracy", metrics[len(metrics) - 1])
 
         return train_history, model, model_store, metrics
@@ -337,21 +338,24 @@ class BIOLSTM:
         """
         gold_y = eval_data["y"]
         pred_y = None
-        if "extra" in self.problem_type:
-            pred_y, _ = model.predict(x=eval_data["x"])
-        else:
-            pred_y = model.predict(x=eval_data["x"])
-        py = []
-        for ys in pred_y:
-            temp = []
-            for yt in ys:
-                if yt[0] > 0.5:
-                    temp.append(1)
-                else:
-                    temp.append(0)
-                py.append(temp)
+        # if "extra" in self.problem_type:
+        #     pred_y, _ = model.predict(x=eval_data["x"])
+        # else:
+        #
+        pred_y = model.predict(x=eval_data["x"])
+        py = np.argmax(pred_y, axis=-1)
+        # py = []
+        # for ys in pred_y:
+        #     temp = []
+        #     for yt in ys:
+        #         if yt[0] > 0.5:
+        #             temp.append(1)
+        #         else:
+        #             temp.append(0)
+        #         py.append(temp)
         g, p = [], []
         gold_y = gold_y.flatten()
+        gold_y = np.argmax(gold_y, axis=-1)
         py = np.array(py).flatten()
         for i in range(len(gold_y)):
             g.append(gold_y[i])

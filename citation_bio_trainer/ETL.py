@@ -16,7 +16,7 @@ class ETL:
         self.__dict__ = config
         self.nlp = spacy.load("en_core_web_sm")
         self.tfhub = hub.load(self.google_vec_url)
-        self.vec_dim = 512 + 96
+        self.vec_dim = 512
         print("### TFhub Loaded ...")
 
     @staticmethod
@@ -92,7 +92,7 @@ class ETL:
             all_labs = {x: i for i, x in enumerate(all_labs)}
             dummy_x = [0.0] * self.vec_dim
             dummy_x = np.array(dummy_x)
-            dummy_y = [0]
+            dummy_y = [0, 0]
             dummy_y = np.array(dummy_y)
 
             train_x = []
@@ -105,8 +105,8 @@ class ETL:
 
             print("### Data Processing Started ...")
 
-            def change(x):
-                if x == "\n" or "_":
+            def change_nl(x):
+                if "\n" in x:
                     return "MWLN"
                 else:
                     return x
@@ -114,23 +114,20 @@ class ETL:
             for file_path in tqdm(df_file_paths):
                 if file_path.endswith(".csv"):
                     df = pd.read_csv(file_path, index_col=0)
-                    nan_value = float("NaN")
-                    df.replace("_", nan_value, inplace=True)
-                    df.dropna(subset=["x"], inplace=True)
-                    df["x"] = df.apply(lambda t: change(t.x), axis=1)
+                    df.fillna("\n", axis=1, inplace=True)
+                    df["x"] = df.apply(lambda t: change_nl(t.x), axis=1)
                     cit_sec = df.x.tolist()
                     cit_lab = df.y.tolist()
                     cit_lab = [
-                        [1] if x.startswith("B") else [0] for x in cit_lab
+                        [0, 1] if x.startswith("B") else [1, 0] for x in cit_lab  # label creation
                     ]
-                    ar = " ".join(cit_sec)
-                    tfhub_x = [np.array(x) for x in self.tfhub(ar.split(" "))]
-                    doc = self.nlp(" ".join(cit_sec))
-                    spacy_x = [d.vector for d in doc]
+                    tfhub_x = [np.array(x) for x in self.tfhub(cit_sec)]
+                    # doc = self.nlp(" ".join(cit_sec))
+                    # spacy_x = [d.vector for d in doc]
                     x = []
-                    for i in range(len(spacy_x)):
+                    for i in range(len(tfhub_x)):
                         x.append(
-                            np.concatenate([spacy_x[i], tfhub_x[i]], axis=0)
+                            tfhub_x[i]
                         )
                     if count >= self.train_count:
                         test_x.append(x)
