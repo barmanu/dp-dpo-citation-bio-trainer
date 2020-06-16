@@ -147,10 +147,10 @@ if __name__ == '__main__':
 
     files = []
     for fname in os.listdir(
-            "/Users/barmanu/Work/dp-dpo-citation-bio-trainer/nlp/exps/output/2020-06-15~07:42:04.444674"):
+            "../nlp/exps/output/2020-06-15~07:42:04.444674"):
         if fname.startswith("data-2020"):
             p = os.path.join(
-                "/Users/barmanu/Work/dp-dpo-citation-bio-trainer/nlp/exps/output/2020-06-15~07:42:04.444674/", fname)
+                "../nlp/exps/output/2020-06-15~07:42:04.444674/", fname)
             files.append(p)
 
     train_count = 0.8 * len(files)
