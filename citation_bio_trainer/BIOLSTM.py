@@ -37,10 +37,6 @@ class Metrics(callbacks.Callback):
         vy = self.validation_data[1]
         vx = np.array(vx)
         pred_y = None
-        # if "extra" in self.model.name:
-        #     pred_y, _ = self.model.predict(vx)
-        # else:
-        #
         pred_y = self.model.predict(vx)
         py = np.argmax(pred_y, axis=-1)
         vy = np.argmax(vy, axis=-1)
@@ -116,15 +112,6 @@ class BIOLSTM:
             name="output"
         )
         dense_ = None
-        # #if "extra" in self.problem_type:
-        # #dense_ = TimeDistributed(
-        #         Dense(
-        #             2,
-        #             activation='softmax',
-        #         ),
-        #         name="extra"
-        #     )
-
         optim = Adam(learning_rate=self.lr, beta_1=self.beta1, beta_2=self.beta2, amsgrad=False)
 
         x = masked(inputs)
@@ -140,26 +127,7 @@ class BIOLSTM:
                     )(x)
 
         outputs = dense(x)
-        # if "extra" in self.problem_type:
-        #     extra = dense_(x)
-        #     model = Model(
-        #         inputs=inputs,
-        #         outputs=[outputs, extra],
-        #         name=self.name
-        #     )
-        #     model.compile(
-        #         optimizer=optim,
-        #         loss={
-        #             "output": "binary_crossentropy",
-        #             "extra": "binary_crossentropy"
-        #         },
-        #         metrics={
-        #             "output": "binary_accuracy",
-        #             "extra": "binary_accuracy"
-        #         },
-        #     )
-        # else:
-        #
+
         model = Model(
             inputs=inputs,
             outputs=outputs,
