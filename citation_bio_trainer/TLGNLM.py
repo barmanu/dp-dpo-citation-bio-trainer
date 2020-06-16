@@ -86,8 +86,8 @@ class BIOLSTM:
         :param verbose:
         :return:
         """
-
         # train step
+        train_history = []
         for ep in range(epoch):
             for fpath in train_data:
                 df = pd.read_csv(fpath, index_col=0)
@@ -101,24 +101,24 @@ class BIOLSTM:
                     epochs=1,
                     verbose=verbose,
                 )
-                aser = 0.0
-                ajer = 0.0
-                for fpath in test_data:
-                    df = pd.read_csv(fpath, index_col=0)
-                    df.fillna("\n", axis=1, inplace=True)
-                    df["x"] = df.apply(lambda t: change_nl(t.x), axis=1)
-                    df["y"] = df.apply(lambda x: 1.0 if x.y.startswith("B") else 0.0, axis=1)
-                    d = {
-                        "x": df.x.tolist(),
-                        "y": df.y.tolist()
-                    }
-                    _, ser, jer = self.eval_model(model, d)
-                    ajer += jer
-                    aser += ser
-                aser /= float(len(test_data))
-                ajer /= float(len(test_data))
-                print(f" AVG SER {aser} JER {ajer}")
-        return model
+            aser = 0.0
+            ajer = 0.0
+            for fpath in test_data:
+                df = pd.read_csv(fpath, index_col=0)
+                df.fillna("\n", axis=1, inplace=True)
+                df["x"] = df.apply(lambda t: change_nl(t.x), axis=1)
+                df["y"] = df.apply(lambda x: 1.0 if x.y.startswith("B") else 0.0, axis=1)
+                d = {
+                    "x": df.x.tolist(),
+                    "y": df.y.tolist()
+                }
+                _, ser, jer = self.eval_model(model, d)
+                ajer += jer
+                aser += ser
+            aser /= float(len(test_data))
+            ajer /= float(len(test_data))
+            train_history.append({"epochs": (ep + 1), "SER": aser, "JER": ajer})
+        return model, pd.DataFrame(train_history)
 
     def eval_model(self, model: tf.keras.Model, eval_data: dict):
         """
@@ -164,4 +164,4 @@ if __name__ == '__main__':
     trainer = BIOLSTM(config)
     model = trainer.get_model()
 
-    model = trainer.train_model(model, train_data, test_data, 64, 10, 2)
+    model, history_df = trainer.train_model(model, train_data, test_data, 64, 10, 2)
