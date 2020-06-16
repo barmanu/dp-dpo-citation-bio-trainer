@@ -118,6 +118,7 @@ class BIOLSTM:
             aser /= float(len(test_data))
             ajer /= float(len(test_data))
             train_history.append({"epochs": (ep + 1), "SER": aser, "JER": ajer})
+            print(f" Epoch {(ep + 1)} SER {aser} JER {ajer}")
         return model, pd.DataFrame(train_history)
 
     def eval_model(self, model: tf.keras.Model, eval_data: dict):
@@ -165,3 +166,4 @@ if __name__ == '__main__':
     model = trainer.get_model()
 
     model, history_df = trainer.train_model(model, train_data, test_data, 64, 10, 2)
+    history_df.to_csv("training.history.csv")
