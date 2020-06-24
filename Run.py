@@ -9,6 +9,7 @@ import mlflow.keras
 import numpy as np
 import pandas as pd
 import tensorflow as tf
+from mlflow_extend import mlflow
 
 from citation_bio_trainer.BIOLSTM import BIOLSTM
 from citation_bio_trainer.ETL import ETL
