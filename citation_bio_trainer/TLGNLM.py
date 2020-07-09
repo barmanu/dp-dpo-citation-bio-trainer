@@ -32,7 +32,7 @@ class BIOLSTM:
         """
         :param config
         {
-            "lr": 0.005,
+            "lr.csv": 0.005,
             "clip": 0.0,
             "beta1": 0.9,
             "beta2": 0.999,
@@ -65,7 +65,7 @@ class BIOLSTM:
         model.add(tf.keras.layers.Dense(1, activation='sigmoid'))
         model.compile(
             optimizer=tf.keras.optimizers.Adam(
-                learning_rate=self.config.get("lr", 0.005),
+                learning_rate=self.config.get("lr.csv", 0.005),
                 beta_1=self.config.get("beta1", 0.0),
                 beta_2=self.config.get("beta2", 0.0),
                 epsilon=self.config.get("epsilon", 1e-05),

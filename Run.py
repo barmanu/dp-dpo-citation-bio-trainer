@@ -190,11 +190,11 @@ def main():
     }
 
     if args.store_at_server:
-        mlflow.set_tracking_uri(args.mlflow_server)
-        mlflow.set_experiment(exp_name)
+        # mlflow.set_tracking_uri(args.mlflow_server)
+        # mlflow.set_experiment(exp_name)
         for i in range(len(metrics[0])):
 
-            mlflow.start_run()
+            # mlflow.start_run()
             d = dict(load_json(os.path.join(args.output, "data-gen-config.json")))
             for k, v in d.items():
                 if "/" not in v and "*" not in v:
@@ -205,14 +205,14 @@ def main():
                 if type(v) == str or type(v) == float or type(v) == int:
                     if "epoch" not in k:
                         mlflow.log_param(k, v)
-            mlflow.log_param("train_count", train_count)
-            mlflow.log_param("test_count", (len(input_files) - train_count))
-            mlflow.log_param("epoch", i + 1)
-            mlflow.log_metric("loss", metrics[0][i])
-            mlflow.log_metric("accuracy", metrics[1][i])
-            mlflow.log_metric("ser", metrics[2][i])
-            mlflow.log_metric("jer", metrics[3][i])
-            mlflow.end_run()
+            # mlflow.log_param("train_count", train_count)
+            # mlflow.log_param("test_count", (len(input_files) - train_count))
+            # mlflow.log_param("epoch", i + 1)
+            # mlflow.log_metric("loss", metrics[0][i])
+            # mlflow.log_metric("accuracy", metrics[1][i])
+            # mlflow.log_metric("ser", metrics[2][i])
+            # mlflow.log_metric("jer", metrics[3][i])
+            # mlflow.end_run()
 
     tdf = pd.DataFrame(temp)
     fig = tdf.plot(x="epoch", y=["loss", "accuracy", "ser", "jer"]).get_figure()
