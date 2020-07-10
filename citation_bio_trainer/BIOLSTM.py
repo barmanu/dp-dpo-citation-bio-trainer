@@ -111,7 +111,6 @@ class BIOLSTM:
             ),
             name="output"
         )
-        dense_ = None
         optim = Adam(learning_rate=self.lr, beta_1=self.beta1, beta_2=self.beta2, amsgrad=False)
 
         x = masked(inputs)
@@ -136,7 +135,7 @@ class BIOLSTM:
         model.compile(
             optimizer=optim,
             loss={
-                "output": "mean_squared_error"
+                "output": "binary_crossentropy"
             },
             metrics={
                 "output": "binary_accuracy"
@@ -251,7 +250,6 @@ class BIOLSTM:
         :param verbose:
         :return:
         """
-        train_history = []
         model_store = []
         valid_metrics = Metrics()
 
@@ -259,18 +257,6 @@ class BIOLSTM:
         test_extra_y = to_categorical(y=test_data["y"], num_classes=2)
         history = None
 
-        # if "extra" in self.problem_type:
-        #     history = model.fit(
-        #         x=train_data["x"],
-        #         y=[train_data["y"], train_extra_y],
-        #         validation_data=(test_data["x"], [test_data["y"], test_extra_y]),
-        #         batch_size=batch,
-        #         epochs=epoch,
-        #         verbose=verbose,
-        #         callbacks=[valid_metrics]
-        #     )
-        # else:
-        #
         history = model.fit(
             x=train_data["x"],
             y=train_data["y"],
@@ -283,18 +269,8 @@ class BIOLSTM:
         model_store.append(model)
         train_history = pd.DataFrame(history.history)
         train_history.rename(columns={train_history.columns[0]: "epoch"}, inplace=True)
-        # train_history.plot(x="epoch", y=["val_loss", "val_output_binary_accuracy", "val_ser", "val_jer"])
-
-        # mlflow.log_metric("SER", rdict["ser"])
-        # mlflow.log_metric("JER", rdict["jer"])
-
-        # if "extra" in self.problem_type:
-        #     metrics = (history.history["val_loss"], history.history["val_output_binary_accuracy"], history.history["val_ser"], history.history["val_jer"])
-        # else:
         metrics = (history.history["val_loss"], history.history["val_binary_accuracy"], history.history["val_ser"],
                    history.history["val_jer"])
-        # mlflow.log_metric("Binaray_Accuracy", metrics[len(metrics) - 1])
-
         return train_history, model, model_store, metrics
 
     def eval_model(self, model: Model, eval_data: dict):
@@ -306,10 +282,6 @@ class BIOLSTM:
         """
         gold_y = eval_data["y"]
         pred_y = None
-        # if "extra" in self.problem_type:
-        #     pred_y, _ = model.predict(x=eval_data["x"])
-        # else:
-        #
         pred_y = model.predict(x=eval_data["x"])
         py = np.argmax(pred_y, axis=-1)
         # py = []

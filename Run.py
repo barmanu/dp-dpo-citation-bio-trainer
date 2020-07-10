@@ -3,13 +3,11 @@ import json
 import os
 import random
 
-import git
 import mlflow
 import mlflow.keras
 import numpy as np
 import pandas as pd
 import tensorflow as tf
-from mlflow_extend import mlflow
 
 from citation_bio_trainer.BIOLSTM import BIOLSTM
 from citation_bio_trainer.ETL import ETL
@@ -94,8 +92,8 @@ def main():
     args = parser.parse_args()
 
     # init: name, output-dir, timestamp
-    repo = git.Repo(search_parent_directories=True)
-    exp_name = repo.remote("origin").url
+
+    exp_name = "BI-LSTM"
 
     # data config loaded
     data_config = None
@@ -190,11 +188,13 @@ def main():
     }
 
     if args.store_at_server:
-        # mlflow.set_tracking_uri(args.mlflow_server)
-        # mlflow.set_experiment(exp_name)
+        try:
+            mlflow.set_tracking_uri(args.mlflow_server)
+        except:
+            mlflow.set_tracking_uri(args.output)
+        mlflow.set_experiment(exp_name)
         for i in range(len(metrics[0])):
-
-            # mlflow.start_run()
+            mlflow.start_run()
             d = dict(load_json(os.path.join(args.output, "data-gen-config.json")))
             for k, v in d.items():
                 if "/" not in v and "*" not in v:
@@ -205,14 +205,14 @@ def main():
                 if type(v) == str or type(v) == float or type(v) == int:
                     if "epoch" not in k:
                         mlflow.log_param(k, v)
-            # mlflow.log_param("train_count", train_count)
-            # mlflow.log_param("test_count", (len(input_files) - train_count))
-            # mlflow.log_param("epoch", i + 1)
-            # mlflow.log_metric("loss", metrics[0][i])
-            # mlflow.log_metric("accuracy", metrics[1][i])
-            # mlflow.log_metric("ser", metrics[2][i])
-            # mlflow.log_metric("jer", metrics[3][i])
-            # mlflow.end_run()
+            mlflow.log_param("train_count", train_count)
+            mlflow.log_param("test_count", (len(input_files) - train_count))
+            mlflow.log_param("epoch", i + 1)
+            mlflow.log_metric("loss", metrics[0][i])
+            mlflow.log_metric("accuracy", metrics[1][i])
+            mlflow.log_metric("ser", metrics[2][i])
+            mlflow.log_metric("jer", metrics[3][i])
+            mlflow.end_run()
 
     tdf = pd.DataFrame(temp)
     fig = tdf.plot(x="epoch", y=["loss", "accuracy", "ser", "jer"]).get_figure()
