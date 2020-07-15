@@ -122,8 +122,6 @@ class ETL:
                         [0, 1] if x.startswith("B") else [1, 0] for x in cit_lab  # label creation
                     ]
                     tfhub_x = [np.array(x) for x in self.tfhub(cit_sec)]
-                    # doc = self.nlp(" ".join(cit_sec))
-                    # spacy_x = [d.vector for d in doc]
                     x = []
                     for i in range(len(tfhub_x)):
                         x.append(
@@ -149,7 +147,7 @@ class ETL:
                 train_x[i] = x
                 train_y[i] = y
 
-            print("### Writing Data (Test) ...")
+            print("### Writing Data  ...")
 
             train_x = np.array(train_x)
             print("### Train-X-Shape:", train_x.shape)

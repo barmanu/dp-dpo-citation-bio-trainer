@@ -12,7 +12,7 @@
   "l2": 0.00,
   "drop_rate": 0.00,
   "batch": 64,
-  "epoch": 50,
+  "epoch": 100,
   "window": 4,
   "crf": false,
   "rnn": true,

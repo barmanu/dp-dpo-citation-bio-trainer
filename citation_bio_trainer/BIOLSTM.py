@@ -1,4 +1,5 @@
 import pandas as pd
+import tensorflow_hub as hub
 from keras.callbacks import *
 from keras.layers import *
 from keras.models import *
@@ -7,6 +8,7 @@ from keras.regularizers import *
 from keras.utils import *
 from sklearn.metrics import *
 
+TFHUB = hub.load("/Users/barmanu/Downloads/5")
 
 def calulate_ser_jer(y_true, y_pred, keep_tag):
     """
@@ -24,6 +26,23 @@ def calulate_ser_jer(y_true, y_pred, keep_tag):
     if (tp + fn) > 0.0:
         jer = fn / float(tp + fn)
     return ser, jer
+
+
+def df_to_input(file_path="./sample_test_for_epochs.csv"):
+    def change_nl(x):
+        if "\n" in x:
+            return "MWLN"
+        else:
+            return x
+
+    df = pd.read_csv(file_path, index_col=0)
+    df.fillna("\n", axis=1, inplace=True)
+    df["x"] = df.apply(lambda t: change_nl(t.x), axis=1)
+    x = df.x.tolist()
+    tfhub_x = [np.array(x) for x in TFHUB(x)]
+    y = df.y.tolist()
+    y = [[0, 1] if l.startswith("B") else [1, 0] for l in y]
+    return df.x.tolist(), y, np.array([tfhub_x])
 
 
 class Metrics(callbacks.Callback):
@@ -48,6 +67,16 @@ class Metrics(callbacks.Callback):
         logs["val_ser"] = ser
         logs["val_jer"] = jer
         print(f"— val_ser: {ser} — val_jer: {jer}")
+
+        gold_x, gold_y, x = df_to_input()
+        pred_y = self.model.predict(x)
+        py = np.argmax(pred_y, axis=-1)[0]
+        gy = np.argmax(gold_y, axis=-1)
+        data = []
+        for i in range(len(gold_x)):
+            data.append({"x": gold_x[i], "gold": gy[i], "pred": py[i]})
+        d = pd.DataFrame(data)
+        d.to_csv("./" + str(epoch) + ".predictions.on.sample.csv")
         return
 
 
@@ -284,15 +313,6 @@ class BIOLSTM:
         pred_y = None
         pred_y = model.predict(x=eval_data["x"])
         py = np.argmax(pred_y, axis=-1)
-        # py = []
-        # for ys in pred_y:
-        #     temp = []
-        #     for yt in ys:
-        #         if yt[0] > 0.5:
-        #             temp.append(1)
-        #         else:
-        #             temp.append(0)
-        #         py.append(temp)
         g, p = [], []
         gold_y = gold_y.flatten()
         gold_y = np.argmax(gold_y, axis=-1)
