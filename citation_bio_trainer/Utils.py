@@ -3,6 +3,8 @@ import os
 from sklearn.metrics import *
 import pandas as pd
 import numpy as np
+import mlflow
+
 def load_json(path):
     d = None
     with open(path) as f:
@@ -34,8 +36,13 @@ def calulate_ser_jer(y_true, y_pred):
         jer = fn / float(tp + fn)
     return ser, jer
 
+def strip_without_newline(word):
+    word_new = word.strip()
+    if len(word_new) == 0 and (word[0] == '\n' and word[-1] == '\n'):
+        word_new = '\n'
+    return word_new
 
-def load_from_folder(folderpath, pattern):
+def load_from_folder(folderpath):
     ''' 
     This function takes input folder path and return lists of seqeunces and tags
     param:
@@ -54,18 +61,19 @@ def load_from_folder(folderpath, pattern):
             fpath = os.path.join(folderpath, fpath)
             df = pd.read_csv(fpath, index_col=0)
             df.fillna("\n", axis=1, inplace=True)
-            #df.x = df.x.apply(lambda word: word.strip())
-            sentences.append(pattern.join(df.x))
-            sent_tags.append(pattern.join(df.y))
+            df.x = df.x.apply(lambda word: strip_without_newline(word))
+            #df = df.loc[(df.x.shift() != df.x)] 
+            sentences.append(" ".join(df.x))
+            sent_tags.append(" ".join(df.y))
     return sentences, sent_tags
 
 
-def pad_sequences(sentences, sent_tags, maxlen, pattern):
+def pad_sequences(sentences, sent_tags, maxlen):
     '''
     This function pads seqences to make them of same length
     '''
-    X = [[w for w in s.split(pattern)] for s in sentences]
-    y = [[p for p in t.split(pattern)] for t in sent_tags]
+    X = [[w for w in s.split(" ")] for s in sentences]
+    y = [[p for p in t.split(" ")] for t in sent_tags]
     new_X = []
     new_y = []
     for ind in range(len(X)):
@@ -106,7 +114,27 @@ def load_embedding_matrix(embeddings, nb_words, word_index, embed_dim):  # load 
 def evaluate(true_labels, pred_labels):
     '''
     This function returns ser, jer and count of mistakes on a dataset
+    true_labels: list of lists of true labels
+    pred_labels: list of lists of pred labels
     '''
+    result = {}
+    result['count'] = len(true_labels)
     ser_jer = [calulate_ser_jer(i,j) for i,j in zip(true_labels, pred_labels)]
     accuracy = [accuracy_score(i,j) for i,j in zip(true_labels, pred_labels)]
-    
+    result['mean_ser'] = np.mean([i[0] for i in ser_jer])
+    result['mean_jer'] = np.mean([i[1] for i in ser_jer])
+    result['mean_acc'] = np.mean(accuracy)
+    result['num_mistakes'] = sum([i !=j for i,j in zip(true_labels, pred_labels)])
+    return result
+
+
+def log_mlflow_results(model, metrics, dataset, data_split):
+    TRACKING_URI = 'https://mlflow.caps.dev.dp.elsevier.systems'
+    mlflow.set_tracking_uri(TRACKING_URI)
+    mlflow.set_experiment("cp-ml-reference-separator-evaluator")
+    with mlflow.start_run():
+        mlflow.log_metrics(metrics)
+        mlflow.keras.log_model(model, "models")
+        mlflow.set_tag('dataset', dataset)
+        mlflow.set_tag('data_split', data_split)
+
