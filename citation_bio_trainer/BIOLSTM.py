@@ -8,7 +8,7 @@ from keras.regularizers import *
 from keras.utils import *
 from sklearn.metrics import *
 
-TFHUB = hub.load("/Users/barmanu/Downloads/5")
+TFHUB = hub.load("https://tfhub.dev/google/universal-sentence-encoder-large/5")
 
 def calulate_ser_jer(y_true, y_pred, keep_tag):
     """
@@ -28,7 +28,7 @@ def calulate_ser_jer(y_true, y_pred, keep_tag):
     return ser, jer
 
 
-def df_to_input(file_path="./sample_2.csv"):
+def df_to_input(file_path):
     def change_nl(x):
         if "\n" in x:
             return "MWLN"
@@ -66,16 +66,6 @@ class Metrics(callbacks.Callback):
         logs["val_ser"] = ser
         logs["val_jer"] = jer
         print(f"— val_ser: {ser} — val_jer: {jer}")
-
-        gold_x, gold_y, x = df_to_input()
-        pred_y = self.model.predict(x)
-        py = np.argmax(pred_y, axis=-1)[0]
-        gy = np.argmax(gold_y, axis=-1)
-        data = []
-        for i in range(len(gold_x)):
-            data.append({"x": gold_x[i], "gold": gy[i], "pred": py[i]})
-        d = pd.DataFrame(data)
-        d.to_csv("./" + str(epoch) + ".predictions.on.sample.csv")
         return
 
 

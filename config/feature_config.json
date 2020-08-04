@@ -1,4 +1,4 @@
 {
   "google_vec": true,
-  "google_vec_url": "/Users/barmanu/Downloads/5"
+  "google_vec_url": "https://tfhub.dev/google/universal-sentence-encoder-large/5"
 }
