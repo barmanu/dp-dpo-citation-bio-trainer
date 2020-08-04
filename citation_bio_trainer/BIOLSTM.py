@@ -8,7 +8,7 @@ from keras.regularizers import *
 from keras.utils import *
 from sklearn.metrics import *
 
-TFHUB = hub.load("https://tfhub.dev/google/universal-sentence-encoder-large/5")
+TFHUB = hub.load("/Users/barmanu/Downloads/5")
 
 def calulate_ser_jer(y_true, y_pred, keep_tag):
     """
