@@ -28,7 +28,7 @@ def calulate_ser_jer(y_true, y_pred, keep_tag):
     return ser, jer
 
 
-def df_to_input(file_path="./sample_test_for_epochs.csv"):
+def df_to_input(file_path="./sample_2.csv"):
     def change_nl(x):
         if "\n" in x:
             return "MWLN"
@@ -55,7 +55,6 @@ class Metrics(callbacks.Callback):
         vx = self.validation_data[0]
         vy = self.validation_data[1]
         vx = np.array(vx)
-        pred_y = None
         pred_y = self.model.predict(vx)
         py = np.argmax(pred_y, axis=-1)
         vy = np.argmax(vy, axis=-1)
