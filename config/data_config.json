@@ -1,6 +1,6 @@
 {
   "s3_bucket": "manuscript64k",
-  "s3_dir": "other_refs/artificial_data/2020-06-08~15:13:57.766608",
+  "s3_dir": "other_refs/cs_mixed_20k/cs_mixed_20k_train",
   "local_dir": "2020-06-08~15:13:57.766608",
   "training_file_prefix": "data-2020"
 }
