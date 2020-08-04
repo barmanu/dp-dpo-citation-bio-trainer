@@ -2,7 +2,7 @@
 
 The dp-dpo-citation-bio-trainer is a python based library. 
 
-### Pre-requisites
+#### Pre-requisites
 - Python 3.7
 - Poetry
 
@@ -21,7 +21,7 @@ tools, which perform code formatting. Make sure to add the formatted files to gi
 `$ poetry run pytest`
 
 
-### Run
+#### Run
 
 Start poetry shell using - `poetry shell` and run -
 
