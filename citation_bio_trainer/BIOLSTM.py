@@ -1,6 +1,6 @@
 import pandas as pd
 import tensorflow_hub as hub
-from keras.callbacks import *
+from keras.callbacks import Callback
 from keras.layers import *
 from keras.models import *
 from keras.optimizers import *
@@ -45,7 +45,7 @@ def df_to_input(file_path):
     return df.x.tolist(), y, np.array([tfhub_x])
 
 
-class Metrics(callbacks.Callback):
+class Metrics(Callback):
 
     def on_train_begin(self, logs={}):
         self.val_ser = []
