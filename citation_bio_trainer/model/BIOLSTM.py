@@ -5,7 +5,6 @@ from keras.layers import *
 from keras.models import *
 from keras.optimizers import *
 from keras.regularizers import *
-from keras.utils import *
 from sklearn.metrics import *
 
 TFHUB = hub.load("/Users/barmanu/Downloads/5")
@@ -46,6 +45,11 @@ def df_to_input(file_path):
 
 
 class Metrics(Callback):
+
+    def __init__(self, train_data, validation_data):
+        super(Metrics, self).__init__()
+        self.validation_data = validation_data
+        self.train_data = train_data
 
     def on_train_begin(self, logs={}):
         self.val_ser = []
@@ -269,11 +273,13 @@ class BIOLSTM:
         :return:
         """
         model_store = []
-        valid_metrics = Metrics()
 
-        train_extra_y = to_categorical(y=train_data["y"], num_classes=2)
-        test_extra_y = to_categorical(y=test_data["y"], num_classes=2)
         history = None
+
+        valid_metrics = Metrics(
+            train_data=(train_data["x"], train_data["y"]),
+            validation_data=(test_data["x"], test_data["y"])
+        )
 
         history = model.fit(
             x=train_data["x"],

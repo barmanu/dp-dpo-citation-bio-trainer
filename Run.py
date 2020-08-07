@@ -9,8 +9,8 @@ import numpy as np
 import pandas as pd
 import tensorflow as tf
 
-from citation_bio_trainer.BIOLSTM import BIOLSTM
-from citation_bio_trainer.ETL import ETL
+from citation_bio_trainer.etl.ETL import ETL
+from citation_bio_trainer.model.BIOLSTM import BIOLSTM
 
 
 def load_json(path):

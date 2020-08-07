@@ -111,7 +111,7 @@ class ETL:
                 else:
                     return x
 
-            for file_path in tqdm(df_file_paths):
+            for file_path in tqdm(df_file_paths[:300]):
                 if file_path.endswith(".csv"):
                     df = pd.read_csv(file_path, index_col=0)
                     df.fillna("\n", axis=1, inplace=True)
@@ -123,11 +123,15 @@ class ETL:
                     ]
                     tfhub_x = [np.array(x) for x in self.tfhub(cit_sec)]
                     x = []
+                    padd_len = 3861 - len(tfhub_x)
                     for i in range(len(tfhub_x)):
                         x.append(
                             tfhub_x[i]
                         )
-                    if count >= self.train_count:
+                    for i in range(padd_len):
+                        x.append(dummy_x)
+                        cit_lab.append(dummy_y)
+                    if count >= 100:  # self.train_count:
                         test_x.append(x)
                         test_y.append(cit_lab)
                     else:
@@ -137,15 +141,15 @@ class ETL:
 
             print(f"### Post Padding with MaxSeqLen-> {max_len}")
 
-            for i in tqdm(range(len(train_x))):
-                x = train_x[i]
-                y = train_y[i]
-                rem = max_len - len(x)
-                for k in range(rem):
-                    x = np.append(x, [dummy_x], axis=0)
-                    y = np.append(y, [dummy_y], axis=0)
-                train_x[i] = x
-                train_y[i] = y
+            # for i in tqdm(range(len(train_x))):
+            #     x = train_x[i]
+            #     y = train_y[i]
+            #     rem = max_len - len(x)
+            #     for k in range(rem):
+            #         x = np.append(x, [dummy_x], axis=0)
+            #         y = np.append(y, [dummy_y], axis=0)
+            #     train_x[i] = x
+            #     train_y[i] = y
 
             print("### Writing Data  ...")
 
