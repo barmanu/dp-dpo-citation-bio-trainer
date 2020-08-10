@@ -68,28 +68,37 @@ def load_from_folder(folderpath):
     return sentences, sent_tags
 
 
-def pad_sequences(sentences, sent_tags, maxlen):
+def pad_sequences(sentences, maxlen, sent_tags=[], has_tags=True):
     '''
     This function pads seqences to make them of same length
     '''
+    
     X = [[w for w in s.split(" ")] for s in sentences]
-    y = [[p for p in t.split(" ")] for t in sent_tags]
+    if has_tags:
+        y = [[p for p in t.split(" ")] for t in sent_tags]
+        
+        
     new_X = []
     new_y = []
     for ind in range(len(X)):
         new_seq = []
-        new_tag = []
+        if has_tags:
+            new_tag = []
         for i in range(maxlen):
             try:
                 new_seq.append(X[ind][i])
-                new_tag.append(y[ind][i])
+                if has_tags:
+                    new_tag.append(y[ind][i])
             except:
                 new_seq.append("PADword")
-                new_tag.append("I-CIT")
+                if has_tags:
+                    new_tag.append("I-CIT")
         new_X.append(new_seq)
-        new_y.append(new_tag)
+        if has_tags:
+            new_y.append(new_tag)
         
-    return new_X, new_y
+    #return new_X, new_y
+    return np.array(new_X, dtype='object'), np.array(new_y, dtype='object')
 
 def load_embedding_matrix(embeddings, nb_words, word_index, embed_dim):  # load embeddings
     embeddings_index = {}
@@ -128,13 +137,16 @@ def evaluate(true_labels, pred_labels):
     return result
 
 
-def log_mlflow_results(model, metrics, dataset, data_split):
+def log_mlflow_results(model, metrics, tags):
     TRACKING_URI = 'https://mlflow.caps.dev.dp.elsevier.systems'
     mlflow.set_tracking_uri(TRACKING_URI)
     mlflow.set_experiment("cp-ml-reference-separator-evaluator")
     with mlflow.start_run():
         mlflow.log_metrics(metrics)
         mlflow.keras.log_model(model, "models")
-        mlflow.set_tag('dataset', dataset)
-        mlflow.set_tag('data_split', data_split)
+        mlflow.set_tags(tags)
+#         mlflow.set_tags('data_split', data_split)
+#         mlflow.set_tag('ft', True)
+#         mlflow.set_tag('spacy', True)
+
 
