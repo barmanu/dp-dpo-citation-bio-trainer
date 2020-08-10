@@ -1,0 +1,10 @@
+.ipynb_checkpoints/
+citation_bio_trainer/feature/.ipynb_checkpoints/
+citation_bio_trainer/feature/__init__.py
+citation_bio_trainer/feature/__pycache__/
+citation_bio_trainer/util/.ipynb_checkpoints/
+citation_bio_trainer/util/__init__.py
+citation_bio_trainer/util/__pycache__/
+nohup.out
+notebooks/.ipynb_checkpoints/
+notebooks/mlruns/

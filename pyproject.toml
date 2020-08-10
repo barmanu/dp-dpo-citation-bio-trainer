@@ -17,7 +17,7 @@ python = "~3.7"
 boto3 = "^1.13.25"
 pandas = "^1.0.4"
 mlflow = "^1.8.0"
-spacy = {extras = ["en_core_web_sm"], version = "^2.2.4"}
+spacy = {extras = ["en_core_web_sm"], version = "2.2.0"}
 en-core-web-sm = {url = "https://github.com/explosion/spacy-models/releases/download/en_core_web_sm-2.2.0/en_core_web_sm-2.2.0.tar.gz"}
 dask = {extras = ["dataframe"], version = "^2.18.1"}
 gitpython = "^3.1.3"
