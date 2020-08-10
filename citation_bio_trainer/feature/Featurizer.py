@@ -5,14 +5,13 @@ from tensorflow.keras.preprocessing import *
 from tensorflow.keras.preprocessing.text import Tokenizer
 
 from util.Utils import pad_sequences
-#from feature.SpacyFeaturizer import get_spacy_feats_from_text
 from feature.SpacyFeaturizer import SpacyFeaturizer
 
 class Featurizer(object):
-    def __init__(self, max_vocab, spacy_feats=False):
-        self.doc_sequencer = Sequencer(max_nb_words = max_vocab)
+    def __init__(self, feat_config):
+        self.doc_sequencer = Sequencer(max_nb_words = feat_config['max_vocab'])
         self.tags2index = {'B-CIT': 1, 'I-CIT': 0}
-        self.spacy_feats = spacy_feats
+        self.feat_config = feat_config
         #self.maxlen = -1
     
     def fit_transform(self, textlist, taglist):
@@ -32,7 +31,7 @@ class Featurizer(object):
         data_dict['lstm_feats'] = word_seq
         print(self.maxlen)
         print(time.time() - start_time)
-        if self.spacy_feats:
+        if self.feat_config['spacy_feats']:
             sp = SpacyFeaturizer()
             df = pd.DataFrame([])
             df['text'] = np.array(textlist, dtype='object')

@@ -137,16 +137,15 @@ def evaluate(true_labels, pred_labels):
     return result
 
 
-def log_mlflow_results(model, metrics, tags):
+def log_mlflow_results(model, metrics, feat_config, model_config, tags):
     TRACKING_URI = 'https://mlflow.caps.dev.dp.elsevier.systems'
     mlflow.set_tracking_uri(TRACKING_URI)
     mlflow.set_experiment("cp-ml-reference-separator-evaluator")
     with mlflow.start_run():
         mlflow.log_metrics(metrics)
         mlflow.keras.log_model(model, "models")
+        mlflow.log_params(feat_config)
+        mlflow.log_params(model_config)
         mlflow.set_tags(tags)
-#         mlflow.set_tags('data_split', data_split)
-#         mlflow.set_tag('ft', True)
-#         mlflow.set_tag('spacy', True)
 
 
