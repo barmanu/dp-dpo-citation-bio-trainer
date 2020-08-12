@@ -116,6 +116,7 @@ class BIOLSTM:
             ),
             name="output"
         )
+
         optim = Adam(learning_rate=self.lr, beta_1=self.beta1, beta_2=self.beta2, amsgrad=False)
 
         x = masked(inputs)

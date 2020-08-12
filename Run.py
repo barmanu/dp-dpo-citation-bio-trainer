@@ -196,10 +196,10 @@ def main():
     keras_model = BIOLSTM_MODEL.get_model()
 
     # start logging in mlflow
-    try:
-        mlflow.set_tracking_uri(args.mlflow_server)
-    except:
-         mlflow.set_tracking_uri(args.output)
+    # try:
+    #     mlflow.set_tracking_uri(args.mlflow_server)
+    # except:
+    mlflow.set_tracking_uri(args.output)
 
     mlflow.set_experiment(args.exp_name)
 
