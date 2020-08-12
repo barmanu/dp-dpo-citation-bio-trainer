@@ -43,7 +43,7 @@ class ETL:
         return arr
 
     def data_and_xydict(
-            self, df_file_paths: list, max_len: int, feature_suffix: str
+            self, train_df_file_paths: list, test_df_file_paths, max_len: int, feature_suffix: str
     ):
         """
         :param df_file_paths:
@@ -87,6 +87,10 @@ class ETL:
             )
         else:
 
+
+            print("\n ### Data Processing Started ...")
+
+
             all_labs = ["I-CIT", "B-CIT"]
             all_labs = list(all_labs)
             all_labs = {x: i for i, x in enumerate(all_labs)}
@@ -95,23 +99,17 @@ class ETL:
             dummy_y = [0, 0]
             dummy_y = np.array(dummy_y)
 
-            train_x = []
-            train_y = []
-
-            test_x = []
-            test_y = []
-
-            count = 0
-
-            print("### Data Processing Started ...")
-
             def change_nl(x):
                 if "\n" in x:
                     return "MWLN"
                 else:
                     return x
 
-            for file_path in tqdm(df_file_paths[:300]):
+            train_x = []
+            train_y = []
+            count = 0
+
+            for file_path in tqdm(train_df_file_paths[:30]):
                 if file_path.endswith(".csv"):
                     df = pd.read_csv(file_path, index_col=0)
                     df.fillna("\n", axis=1, inplace=True)
@@ -123,7 +121,7 @@ class ETL:
                     ]
                     tfhub_x = [np.array(x) for x in self.tfhub(cit_sec)]
                     x = []
-                    padd_len = 3861 - len(tfhub_x)
+                    padd_len = max_len - len(tfhub_x)
                     for i in range(len(tfhub_x)):
                         x.append(
                             tfhub_x[i]
@@ -131,51 +129,53 @@ class ETL:
                     for i in range(padd_len):
                         x.append(dummy_x)
                         cit_lab.append(dummy_y)
-                    if count >= 100:  # self.train_count:
-                        test_x.append(x)
-                        test_y.append(cit_lab)
-                    else:
-                        train_x.append(x)
-                        train_y.append(cit_lab)
+
+                    train_x.append(x)
+                    train_y.append(cit_lab)
                     count = count + 1
-
-            print(f"### Post Padding with MaxSeqLen-> {max_len}")
-
-            # for i in tqdm(range(len(train_x))):
-            #     x = train_x[i]
-            #     y = train_y[i]
-            #     rem = max_len - len(x)
-            #     for k in range(rem):
-            #         x = np.append(x, [dummy_x], axis=0)
-            #         y = np.append(y, [dummy_y], axis=0)
-            #     train_x[i] = x
-            #     train_y[i] = y
-
-            print("### Writing Data  ...")
-
+            print("### Writing Training Data  ...")
             train_x = np.array(train_x)
-            print("### Train-X-Shape:", train_x.shape)
+            print("### X-Shape:", train_x.shape)
             train_y = np.array(train_y)
-            print("### Train-y-Shape:", train_y.shape)
-
+            print("### Y-Shape:", train_y.shape)
             ETL.write_nparray(train_x_path, train_x)
             ETL.write_nparray(train_y_path, train_y)
 
-            for i in tqdm(range(len(test_x))):
-                x = test_x[i]
-                y = test_y[i]
-                rem = max_len - len(x)
-                for k in range(rem):
-                    x = np.append(x, [dummy_x], axis=0)
-                    y = np.append(y, [dummy_y], axis=0)
-                test_x[i] = x
-                test_y[i] = y
+            test_x = []
+            test_y = []
+            count = 0
+
+            for file_path in tqdm(test_df_file_paths[:30]):
+                if file_path.endswith(".csv"):
+                    df = pd.read_csv(file_path, index_col=0)
+                    df.fillna("\n", axis=1, inplace=True)
+                    df["x"] = df.apply(lambda t: change_nl(t.x), axis=1)
+                    cit_sec = df.x.tolist()
+                    cit_lab = df.y.tolist()
+                    cit_lab = [
+                        [0, 1] if x.startswith("B") else [1, 0] for x in cit_lab  # label creation
+                    ]
+                    tfhub_x = [np.array(x) for x in self.tfhub(cit_sec)]
+                    x = []
+                    padd_len = max_len - len(tfhub_x)
+                    for i in range(len(tfhub_x)):
+                        x.append(
+                            tfhub_x[i]
+                        )
+                    for i in range(padd_len):
+                        x.append(dummy_x)
+                        cit_lab.append(dummy_y)
+
+                    test_x.append(x)
+                    test_y.append(cit_lab)
+                    count = count + 1
+
+            print("### Writing Test Data  ...")
 
             test_x = np.array(test_x)
-            print("### Test-x-Shape:", test_x.shape)
+            print("### X-Shape:", test_x.shape)
             test_y = np.array(test_y)
-            print("### Test-y-Shape:", test_y.shape)
-
+            print("### Y-Shape:", test_y.shape)
             ETL.write_nparray(test_x_path, test_x)
             ETL.write_nparray(test_y_path, test_y)
 
