@@ -1,5 +1,6 @@
+
+import numpy as np
 import pandas as pd
-import tensorflow_hub as hub
 from keras.callbacks import Callback
 from keras.layers import *
 from keras.models import *
@@ -7,7 +8,6 @@ from keras.optimizers import *
 from keras.regularizers import *
 from sklearn.metrics import *
 
-TFHUB = hub.load("/Users/barmanu/Downloads/5")
 
 def calulate_ser_jer(y_true, y_pred, keep_tag):
     """
@@ -25,23 +25,6 @@ def calulate_ser_jer(y_true, y_pred, keep_tag):
     if (tp + fn) > 0.0:
         jer = fn / float(tp + fn)
     return ser, jer
-
-
-def df_to_input(file_path):
-    def change_nl(x):
-        if "\n" in x:
-            return "MWLN"
-        else:
-            return x
-
-    df = pd.read_csv(file_path, index_col=0)
-    df.fillna("\n", axis=1, inplace=True)
-    df["x"] = df.apply(lambda t: change_nl(t.x), axis=1)
-    x = df.x.tolist()
-    tfhub_x = [np.array(x) for x in TFHUB(x)]
-    y = df.y.tolist()
-    y = [[0, 1] if l.startswith("B") else [1, 0] for l in y]
-    return df.x.tolist(), y, np.array([tfhub_x])
 
 
 class Metrics(Callback):
@@ -69,7 +52,7 @@ class Metrics(Callback):
         self.val_jer.append(jer)
         logs["val_ser"] = ser
         logs["val_jer"] = jer
-        print(f"— val_ser: {ser} — val_jer: {jer}")
+        print(f" — val_ser: {ser} — val_jer: {jer}")
         return
 
 
@@ -133,6 +116,7 @@ class BIOLSTM:
             ),
             name="output"
         )
+
         optim = Adam(learning_rate=self.lr, beta_1=self.beta1, beta_2=self.beta2, amsgrad=False)
 
         x = masked(inputs)
@@ -151,8 +135,7 @@ class BIOLSTM:
 
         model = Model(
             inputs=inputs,
-            outputs=outputs,
-            name=self.name
+            outputs=outputs
         )
         model.compile(
             optimizer=optim,
@@ -220,8 +203,16 @@ class BIOLSTM:
         x = np.reshape(x, (len(x), len(x[0])))
         return x
 
-    def cross_validate(self, x: np.array, y: np.array, batch: int, epoch: int, label_dict: dict, split=5,
-                       verbose=2):
+    def cross_validate(
+            self,
+            x: np.array,
+            y: np.array,
+            batch: int,
+            epoch: int,
+            label_dict: dict,
+            split=5,
+            verbose=2
+    ):
         """
         :param x:
         :param y:

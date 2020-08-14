@@ -23,9 +23,24 @@ tools, which perform code formatting. Make sure to add the formatted files to gi
 
 #### Run
 
-Start poetry shell using - `poetry shell` and run -
+Start poetry shell using - `poetry shell` and run the following command - 
 
-`$ python Run.py --output-dir <output_dir> --data-config <data_config_json> --feature-config <feature_config_json> --model-config <model_config_json> `
+```sh
+$ python Run.py \
+--data-config ./config/data_config.json \ 
+--feature-config ./config/feature_config.json \
+--model-config ./config/model_config.json
+```
+Following is an example of `data_config.json`, most of the fields are self explanatory. The filed `local_dir` is the output directory where models and training results will be stored.``"
+```json
+{
+  "source_s3_bucket": "manuscript64k",
+  "train_s3_dir": "other_refs/cs_mixed_20k/cs_mixed_20k_train",
+  "test_s3_dir": "other_refs/cs_mixed_20k/cs_mixed_20k_test",
+  "local_dir": "output",
+  "file_prefix": "data-2020"
+}
+```
 
 
 ### Versioning

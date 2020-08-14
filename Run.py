@@ -9,7 +9,7 @@ import numpy as np
 import pandas as pd
 import tensorflow as tf
 
-from citation_bio_trainer.etl.ETL import ETL
+from citation_bio_trainer.etl.BIOLSTM_ETL import ETL
 from citation_bio_trainer.model.BIOLSTM import BIOLSTM
 
 
@@ -47,14 +47,27 @@ def reset_random_seeds():
 
 
 def main():
+
+
     parser = argparse.ArgumentParser(add_help=True)
+
+    # OPTIONAL
 
     parser.add_argument(
         "--output-dir",
         dest="output",
-        default="./nlp/exps/output",
+        default="output",
         help="output dir"
     )
+
+    parser.add_argument(
+        "--exp-name",
+        dest="exp_name",
+        default="DemoRun-CitationSeparator2.0-BIOLSTM",
+        help="exp name"
+    )
+
+    # MANDETORY
 
     parser.add_argument(
         "--data-config",
@@ -75,13 +88,14 @@ def main():
         help="training model config"
     )
 
+    # MLFLOW LOGGING PARAMS
+
     parser.add_argument(
         "--mlflow-server-url",
         dest="mlflow_server",
         default="https://mlflow.caps.dev.dp.elsevier.systems",
         help="mlflow server path"
     )
-
     parser.add_argument(
         "--store-at-mlflow-server",
         dest="store_at_server",
@@ -91,78 +105,107 @@ def main():
 
     args = parser.parse_args()
 
-    # init: name, output-dir, timestamp
-
-    exp_name = "BI-LSTM"
 
     # data config loaded
-    data_config = None
     with open(args.data_config_path) as jf:
         data_config = json.load(jf)
     jf.close()
-    print("### Data Config given:\n")
+    print("\n### Data Config given:\n")
     for k, v in data_config.items():
-        print(f"--{k} {v}")
+        print(f"\t--{k} :{v}")
     print("\n")
 
     # downloading data if not exits
-    input_files = []
+    train_input_files = []
+    test_input_files = []
     max_len = -1
-    args.output = os.path.join(args.output, data_config["local_dir"])
     if not os.path.exists(args.output):
         os.makedirs(args.output)
-        os.system("aws s3 cp s3://" + data_config["s3_bucket"] + "/" + data_config[
-            "s3_dir"] + "/ " + args.output + " --recursive")
-    # loading path and max_len
-    for f_name in os.listdir(args.output):
+        os.makedirs(os.path.join(args.output, "train"))
+        os.system("aws s3 cp s3://" + data_config["source_s3_bucket"] + "/" + data_config["train_s3_dir"] + "/ " + args.output + "/train/" + " --recursive")
+        os.makedirs(os.path.join(args.output, "test"))
+        os.system("aws s3 cp s3://" + data_config["source_s3_bucket"] + "/" + data_config["test_s3_dir"] + "/ " + args.output + "/test/" + " --recursive")
+
+    # loading paths and max_len
+    for f_name in os.listdir(os.path.join(args.output, "train")):
         if f_name.startswith(data_config["training_file_prefix"]):
-            df = pd.read_csv(os.path.join(args.output, f_name))
+            p = os.path.join(args.output, "train")
+            p = os.path.join(p, f_name)
+            df = pd.read_csv(p)
             if max_len < len(df):
                 max_len = len(df)
-            input_files.append(os.path.join(args.output, f_name))
+            train_input_files.append(p)
+    for f_name in os.listdir(os.path.join(args.output, "test")):
+        if f_name.startswith(data_config["training_file_prefix"]):
+            p = os.path.join(args.output, "test")
+            p = os.path.join(p, f_name)
+            df = pd.read_csv(p)
+            if max_len < len(df):
+                max_len = len(df)
+            test_input_files.append(p)
+
+    print(f"\t--max len :{max_len}\n\t--train_file_count :{len(train_input_files)}\n\t--test_file_count :{len(test_input_files)}\n")
+
 
     # feature config loaded
-    feature_config = None
     with open(args.feature_config_path) as jf:
         feature_config = json.load(jf)
     jf.close()
+    print("### Feature Config given:\n")
+    for k, v in feature_config.items():
+        print(f"\t--{k} :{v}")
+    print("\n")
+
 
     # model config loaded
-    model_config = None
     with open(args.model_config_path) as jf:
         model_config = json.load(jf)
     jf.close()
+    print("### Model Training Config given:\n")
+    for k, v in model_config.items():
+        print(f"\t--{k} :{v}")
+    print("\n")
 
-    etl = ETL(config=feature_config)
+
 
     # train/test split recognition from model_config
-    train_count = model_config["train_per"] * len(input_files)
-    train_count = min(len(input_files) - 1, train_count)
-
+    train_count = len(train_input_files)
     feature_config["output_dir"] = args.output
     feature_config["train_count"] = train_count
-    feature_config["test_count"] = (len(input_files) - train_count)
-
+    feature_config["test_count"] = len(test_input_files)
     feature_suffix = get_name_from_dict(feature_config)
 
-    etl = ETL(config=feature_config)
-    data_dict, label_dict = etl.data_and_xydict(df_file_paths=input_files, max_len=max_len,
-                                                feature_suffix=feature_suffix)
-    lab_dict = dict(zip(label_dict.values(), label_dict.keys()))
 
+    BIOLSTM_ETL = ETL(config=feature_config)
+
+    data_dict, label_dict = BIOLSTM_ETL.data_and_xydict(
+        train_df_file_paths=train_input_files,
+        test_df_file_paths=test_input_files,
+        max_len=max_len,
+        feature_suffix=feature_suffix
+    )
+    lab_dict = dict(zip(label_dict.values(), label_dict.keys()))
     train_data = data_dict["train"]
     test_data = data_dict["test"]
 
-    model_config["input_dim"] = etl.vec_dim
+
+    model_config["input_dim"] = BIOLSTM_ETL.vec_dim
     model_config["output_dim"] = len(lab_dict)
 
-    # logg in mlflow
+    BIOLSTM_MODEL = BIOLSTM(config=model_config)
+    keras_model = BIOLSTM_MODEL.get_model()
 
-    biolstm = BIOLSTM(config=model_config)
-    model = biolstm.get_model()
-    history_df, model, model_store, metrics = biolstm.train_model(
-        model=model,
-        train_data={
+    # start logging in mlflow
+    # try:
+    #     mlflow.set_tracking_uri(args.mlflow_server)
+    # except:
+    mlflow.set_tracking_uri(args.output)
+
+    mlflow.set_experiment(args.exp_name)
+
+    history_df, keras_model, model_store, metrics = BIOLSTM_MODEL.train_model(
+        model = keras_model,
+        train_data = {
             "x": train_data["x"],
             "y": train_data["y"]
         },
@@ -175,10 +218,8 @@ def main():
         epoch=model_config["epoch"],
         verbose=1
     )
-
     path = os.path.join(args.output, "training.history.csv")
     history_df.to_csv(path)
-
     temp = {
         "epoch": [i for i in range(len(metrics[0]))],
         "loss": metrics[0],
@@ -186,57 +227,45 @@ def main():
         "ser": metrics[2],
         "jer": metrics[3]
     }
-
-    if args.store_at_server:
-        try:
-            mlflow.set_tracking_uri(args.mlflow_server)
-        except:
-            mlflow.set_tracking_uri(args.output)
-        mlflow.set_experiment(exp_name)
-        for i in range(len(metrics[0])):
-            mlflow.start_run()
-            d = dict(load_json(os.path.join(args.output, "data-gen-config.json")))
-            for k, v in d.items():
-                if "/" not in v and "*" not in v:
-                    mlflow.log_param("dsata-gen-" + str(v), k)
-            print("\n")
-            mlflow.set_tag("features", feature_suffix)
-            for k, v in model_config.items():
-                if type(v) == str or type(v) == float or type(v) == int:
-                    if "epoch" not in k:
-                        mlflow.log_param(k, v)
-            mlflow.log_param("train_count", train_count)
-            mlflow.log_param("test_count", (len(input_files) - train_count))
-            mlflow.log_param("epoch", i + 1)
-            mlflow.log_metric("loss", metrics[0][i])
-            mlflow.log_metric("accuracy", metrics[1][i])
-            mlflow.log_metric("ser", metrics[2][i])
-            mlflow.log_metric("jer", metrics[3][i])
-            mlflow.end_run()
+    for i in range(len(metrics[0])): # epochs
+        mlflow.start_run()
+        mlflow.set_tag("train_data_set", data_config["train_s3_dir"])
+        for k, v in model_config.items():
+            if type(v) == str or type(v) == float or type(v) == int:
+                if "epoch" not in k:
+                    mlflow.log_param(k, v)
+                    mlflow.log_param("train_count", train_count)
+                    mlflow.log_param("test_count", (len(train_input_files) - train_count))
+                    mlflow.log_param("epoch", i + 1)
+                    mlflow.log_metric("loss", metrics[0][i])
+                    mlflow.log_metric("accuracy", metrics[1][i])
+                    mlflow.log_metric("ser", metrics[2][i])
+                    mlflow.log_metric("jer", metrics[3][i])
+        mlflow.end_run()
 
     tdf = pd.DataFrame(temp)
     fig = tdf.plot(x="epoch", y=["loss", "accuracy", "ser", "jer"]).get_figure()
     path = os.path.join(args.output, "training.history.png")
     fig.savefig(path)
 
-    if args.store_at_server:
-        mlflow.log_artifact(path)
-
+#     if args.store_at_server:
+#         mlflow.log_artifact(path)
+#
     with open(os.path.join(args.output, "model-hyper-param-config.json"), 'w') as jf:
         json.dump(model_config, jf)
     jf.close()
 
-    if args.store_at_server:
-        mlflow.log_artifact(os.path.join(args.output, "model-hyper-param-config.json"))
-
-    for ik in range(len(model_store)):
-        path = os.path.join(args.output, str(model.name) + "-num-" + str(ik) + ".h5")
-        model_store[ik].save(path)
-        if args.store_at_server:
-            mlflow.keras.log_model(model_store[ik], model_store[ik].name)
-
-
-print("### Done !!!")
+#     if args.store_at_server:
+#         mlflow.log_artifact(os.path.join(args.output, "model-hyper-param-config.json"))
+#
+#     for ik in range(len(model_store)):
+#         path = os.path.join(args.output, str(model.name) + "-num-" + str(ik) + ".h5")
+#         model_store[ik].save(path)
+#         if args.store_at_server:
+#             mlflow.keras.log_model(model_store[ik], model_store[ik].name)
+#
+#
+# print("### Done !!!")
 
 if __name__ == '__main__':
     main()

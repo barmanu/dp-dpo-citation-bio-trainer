@@ -1,6 +1,7 @@
 {
-  "s3_bucket": "manuscript64k",
-  "s3_dir": "other_refs/cs_mixed_20k/cs_mixed_20k_train",
-  "local_dir": "2020-06-08~15:13:57.766608",
+  "source_s3_bucket": "manuscript64k",
+  "train_s3_dir": "other_refs/cs_mixed_20k/cs_mixed_20k_train",
+  "test_s3_dir": "other_refs/cs_mixed_20k/cs_mixed_20k_test",
+  "local_dir": "output",
   "training_file_prefix": "data-2020"
 }

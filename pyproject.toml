@@ -29,7 +29,11 @@ gensim = "^3.8.3"
 tensorflow-hub = "^0.8.0"
 tensorboard = "2.2.2"
 tensorflow = "2.2.0"
+<<<<<<< HEAD
 sciwing = "^0.1.post3"
+=======
+keras = "^2.4.3"
+>>>>>>> 88983d75c7cf8a561c571c8568e41e088348a4bb
 
 [tool.poetry.dev-dependencies]
 pytest = "^5.2"
