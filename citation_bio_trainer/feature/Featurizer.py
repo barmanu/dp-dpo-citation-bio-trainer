@@ -43,6 +43,19 @@ class Featurizer(object):
                 spacy_mask[0:len(spacy_feats[ind]), :] = spacy_feats[ind][:]
                 spacy_feats_padded.append(spacy_mask)
             data_dict['spacy_num_feats'] = np.array([i.tolist() for i in spacy_feats_padded])
+            
+        if self.feat_config['parscit_feats']:
+            sp = SpacyFeaturizer()
+            df = pd.DataFrame([])
+            df['text'] = np.array(textlist, dtype='object')
+            spacy_df = sp.get_spacy_dask(df, blocksize=1000)
+            spacy_feats = list(spacy_df['spacy_bin']) 
+            spacy_feats_padded = []
+            for ind in range(len(spacy_feats)):
+                spacy_mask = np.array([[1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],]*self.maxlen)
+                spacy_mask[0:len(spacy_feats[ind]), :] = spacy_feats[ind][:]
+                spacy_feats_padded.append(spacy_mask)
+            data_dict['spacy_num_feats'] = np.array([i.tolist() for i in spacy_feats_padded])
         
         
         return data_dict, tokenizer, self.maxlen
