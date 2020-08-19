@@ -133,7 +133,9 @@ def evaluate(true_labels, pred_labels):
     result['mean_ser'] = np.mean([i[0] for i in ser_jer])
     result['mean_jer'] = np.mean([i[1] for i in ser_jer])
     result['mean_acc'] = np.mean(accuracy)
-    result['num_mistakes'] = np.sum([i !=j for i,j in zip(true_labels, pred_labels)])
+    result['num_mistakes_seq'] = np.sum([i !=j for i,j in zip(true_labels, pred_labels)])
+    result['num_mistakes_all'] = np.sum([np.sum(np.array(i) != np.array(j)) for i,j in zip(true_labels, pred_labels)])
+    
     return result
 
 
