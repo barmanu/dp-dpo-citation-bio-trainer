@@ -114,6 +114,20 @@ class ParsCitLSTM:
             ls.append(self.dask_predict(df_subset))
         return pd.concat(ls)
         
+# def pad_dummy_feats(df, maxlen):
+#     parscit = df.copy()
+#     parscit_feats = list(parscit['parscit_feat']) 
+#     parscit_padded = []
+#     for ind in range(len(parscit_feats)):
+#         parscit_mask = np.zeros((maxlen, 14), dtype='int8')
+#         if len(parscit_feats[ind]) <= maxlen:
+#             parscit_mask[0:len(parscit_feats[ind]), :] = parscit_feats[ind][:]
+#         else:
+#             parscit_mask[:] = parscit_feats[ind][0:maxlen,:]
+#         parscit_padded.append(parscit_mask)
+#     parscit_arr = np.array([i.tolist() for i in parscit_padded])
+#     return parscit_arr
+
 if __name__ == '__main__':
     path = "/Users/barmanu/Work/dp-dpo-citation-bio-trainer/citation_lstms/data.csv"
     df = pd.read_csv(path)
