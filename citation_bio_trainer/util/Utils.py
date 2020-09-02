@@ -128,13 +128,17 @@ def evaluate(true_labels, pred_labels):
     '''
     result = {}
     result['count'] = len(true_labels)
-    ser_jer = [calulate_ser_jer(i,j) for i,j in zip(true_labels, pred_labels)]
+    result['count_citations'] = np.sum([np.sum(np.array(sent) == 1) for sent in true_labels])
+    #ser_jer = [calulate_ser_jer(i,j) for i,j in zip(true_labels, pred_labels)]
     accuracy = [accuracy_score(i,j) for i,j in zip(true_labels, pred_labels)]
-    result['mean_ser'] = np.mean([i[0] for i in ser_jer])
-    result['mean_jer'] = np.mean([i[1] for i in ser_jer])
+    #result['mean_ser'] = np.mean([i[0] for i in ser_jer])
+    #result['mean_jer'] = np.mean([i[1] for i in ser_jer])
     result['mean_acc'] = np.mean(accuracy)
     result['num_mistakes_seq'] = np.sum([i !=j for i,j in zip(true_labels, pred_labels)])
     result['num_mistakes_all'] = np.sum([np.sum(np.array(i) != np.array(j)) for i,j in zip(true_labels, pred_labels)])
+    result['mistakes_per_seq'] = result['num_mistakes_all']/ result['num_mistakes_seq']
+    result['perc_mistakes_seq'] = result['num_mistakes_seq']*100 / result['count']
+    result['mistake_per_citation'] = result['num_mistakes_all'] * 100 / result['count_citations'] 
     
     return result
 

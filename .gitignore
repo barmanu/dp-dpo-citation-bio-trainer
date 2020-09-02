@@ -8,3 +8,5 @@ citation_bio_trainer/util/__pycache__/
 nohup.out
 notebooks/.ipynb_checkpoints/
 notebooks/mlruns/
+citation_bio_trainer/model/__pycache__/
+

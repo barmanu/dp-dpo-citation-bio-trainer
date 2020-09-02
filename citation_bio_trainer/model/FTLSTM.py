@@ -63,41 +63,46 @@ def calulate_ser_jer(y_true, y_pred):
     
     
 def get_model(feat_config, model_config, maxlen):
-    input = Input(shape=(maxlen,))
-    y = Embedding(input_dim=feat_config['max_vocab'], input_length=maxlen, output_dim=300, weights=[model_config['embedding']['matrix']], trainable=model_config['embedding']['trainable'])(input)
-    
-    if model_config['aux_feats']['use'] and model_config['aux_feats']['place']=='before_lstm':
-        aux_feats = Input(shape=(maxlen,model_config['aux_feats']['dim']))
-        y = Concatenate()([y, aux_feats])
-        
-    if model_config['lstm']['use']:
-        for ind in range(model_config['lstm']['num']):
-            if ind ==0:
-                y = LSTM(model_config['lstm']['units'], dropout=model_config['lstm']['dropout'], return_sequences=True)(y)
-            else:
-                y = LSTM(model_config['lstm']['units'], dropout=model_config['lstm']['dropout'], return_sequences=True)(y)
-    
-    if model_config['aux_feats']['use'] and model_config['aux_feats']['place']=='after_lstm':
-        aux_feats = Input(shape=(maxlen,model_config['aux_feats']['dim']))
-        y = Concatenate()([y, aux_feats])
-        
-    if model_config['dense']['use']:
-        y =  Dense(model_config['dense']['units'], activation=model_config['dense']['activation'])(y)
-        
-    if model_config['timedistributed']['use']:
-        y = TimeDistributed(Dense(1, activation=model_config['output_activation']))(y)
-    else:
-        y = Dense(1, activation=model_config['output_activation'])(y)
-        
-    if model_config['aux_feats']['use']:
-        model = Model(inputs=[input, aux_feats], outputs=y)
-    else:
-        model = Model(inputs=input, outputs=y)
-        
-    model.compile(optimizer=model_config['optimizer'],
-        loss='binary_crossentropy',
-        metrics=['accuracy']
-    )
+    try:
+        print('first line')
+        input = Input(shape=(maxlen,))
+        print('after imput')
+        y = Embedding(input_dim=feat_config['max_vocab'], input_length=maxlen, output_dim=300, weights=[model_config['embedding']['matrix']], trainable=model_config['embedding']['trainable'])(input)
+        print('after embedding')
+        if model_config['aux_feats']['use'] and model_config['aux_feats']['place']=='before_lstm':
+            aux_feats = Input(shape=(maxlen,model_config['aux_feats']['dim']))
+            y = Concatenate()([y, aux_feats])
+        print('before bidirectional')
+        if model_config['lstm']['use']:
+            for ind in range(model_config['lstm']['num']):
+                if ind ==0:
+                    y = Bidirectional(LSTM(model_config['lstm']['units'], dropout=model_config['lstm']['dropout'], return_sequences=True))(y)
+                else:
+                    y = Bidirectional(LSTM(model_config['lstm']['units'], dropout=model_config['lstm']['dropout'], return_sequences=True))(y)
+        print('after bidirectional')
+        if model_config['aux_feats']['use'] and model_config['aux_feats']['place']=='after_lstm':
+            aux_feats = Input(shape=(maxlen,model_config['aux_feats']['dim']))
+            y = Concatenate()([y, aux_feats])
+
+        if model_config['dense']['use']:
+            y =  Dense(model_config['dense']['units'], activation=model_config['dense']['activation'])(y)
+
+        if model_config['timedistributed']['use']:
+            y = TimeDistributed(Dense(1, activation=model_config['output_activation']))(y)
+        else:
+            y = Dense(1, activation=model_config['output_activation'])(y)
+
+        if model_config['aux_feats']['use']:
+            model = Model(inputs=[input, aux_feats], outputs=y)
+        else:
+            model = Model(inputs=input, outputs=y)
+
+        model.compile(optimizer=model_config['optimizer'],
+            loss='binary_crossentropy',
+            metrics=['accuracy']
+        )
+    except Exception as e:
+        print(e)
     return model
 
 

@@ -11,7 +11,7 @@ class Featurizer(object):
         self.doc_sequencer = LSTMFeaturizer(max_nb_words = feat_config['max_vocab'])
         self.tags2index = {'B-CIT': 1, 'I-CIT': 0}
         self.feat_config = feat_config
-        #self.maxlen = -1
+        self.maxlen = -1
     
     def fit_transform(self, textlist, taglist):
         ### LSTM Features
