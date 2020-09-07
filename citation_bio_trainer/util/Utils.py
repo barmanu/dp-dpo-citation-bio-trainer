@@ -4,7 +4,7 @@ from sklearn.metrics import *
 import pandas as pd
 import numpy as np
 import mlflow
-
+from tqdm import tqdm
 def load_json(path):
     d = None
     with open(path) as f:
@@ -27,7 +27,12 @@ def calulate_ser_jer(y_true, y_pred):
     :param keep_tag:
     :return:
     """
-    tn, fp, fn, tp = confusion_matrix(y_true=y_true, y_pred=y_pred).ravel()
+    confmat = confusion_matrix(y_true=y_true, y_pred=y_pred).ravel()
+    if confmat.size == 4:
+        tn, fp, fn, tp = confusion_matrix(y_true=y_true, y_pred=y_pred).ravel()
+    else:
+        tp = fp = fn = 0
+        tn = confusion_matrix(y_true=y_true, y_pred=y_pred).ravel()
     ser = 1.0
     if (tp + fp) > 0.0:
         ser = fp / float(tp + fp)
@@ -38,7 +43,7 @@ def calulate_ser_jer(y_true, y_pred):
 
 def strip_without_newline(word):
     word_new = word.strip()
-    if len(word_new) == 0 and (word[0] == '\n' and word[-1] == '\n'):
+    if len(word_new) == 0 and ('\n' in word):
         word_new = '\n'
     return word_new
 
@@ -62,20 +67,23 @@ def load_from_folder(folderpath):
             df = pd.read_csv(fpath, index_col=0)
             df.fillna("\n", axis=1, inplace=True)
             df.x = df.x.apply(lambda word: strip_without_newline(word))
-            #df = df.loc[(df.x.shift() != df.x)] 
+            ### to remove some hidden spaces in non-ascii format
+            df.x = df.x.astype(str).str.replace(u'\xa0', '')
+            df.x = df.x.astype(str).str.replace(u'\u202f', '')
+            df = df[df.x != ""] 
             sentences.append(" ".join(df.x))
             sent_tags.append(" ".join(df.y))
     return sentences, sent_tags
 
 
-def pad_sequences(sentences, maxlen, sent_tags=[], has_tags=True):
+def pad_sequences(X, maxlen, y=[], has_tags=True):
     '''
     This function pads seqences to make them of same length
     '''
     
-    X = [[w for w in s.split(" ")] for s in sentences]
-    if has_tags:
-        y = [[p for p in t.split(" ")] for t in sent_tags]
+    #X = [[w for w in s.split(" ")] for s in sentences]
+#     if has_tags:
+#         y = [[p for p in t.split(" ")] for t in sent_tags]
         
         
     new_X = []
@@ -138,7 +146,7 @@ def evaluate(true_labels, pred_labels):
     result['num_mistakes_all'] = np.sum([np.sum(np.array(i) != np.array(j)) for i,j in zip(true_labels, pred_labels)])
     result['mistakes_per_seq'] = result['num_mistakes_all']/ result['num_mistakes_seq']
     result['perc_mistakes_seq'] = result['num_mistakes_seq']*100 / result['count']
-    result['mistake_per_citation'] = result['num_mistakes_all'] * 100 / result['count_citations'] 
+    result['perc_mistake_per_citation'] = result['num_mistakes_all'] * 100 / result['count_citations'] 
     
     return result
 
@@ -154,4 +162,39 @@ def log_mlflow_results(model, metrics, feat_config, model_config, tags):
         mlflow.log_params(model_config)
         mlflow.set_tags(tags)
 
+
+def sliding_window_seq(sequence, tags=[], winSize=100,step=1, has_tags=True):
+    out_seq = []
+    out_tags = []
+    if step > winSize:
+        print("step bigger than window")
+        
+    numOfChunks = int(((len(sequence)-winSize)/step)+2)
+    if has_tags:
+        for i in range(0,numOfChunks*step,step):
+            out_seq.append(sequence[i:i+winSize])
+            out_tags.append(tags[i:i+winSize])
+    else:
+        for i in range(0,numOfChunks*step,step):
+            out_seq.append(sequence[i:i+winSize])
+        
+    return out_seq, out_tags
+
+def sliding_window_list(sequence_list, tag_list=[], winSize=100, step=90, has_tags=True):
+    out_seq_list = []
+    out_tag_list = []
+    if has_tags:
+        for seq, tags in tqdm(zip(sequence_list, tag_list)):
+            newseq, newtags = sliding_window_seq(seq, tags, winSize, step)
+            out_seq_list.append(newseq)
+            out_tag_list.append(newtags)
+    else:
+        for seq in tqdm(sequence_list):
+            newseq, newtags = sliding_window_seq(seq, winSize=winSize, step=step, has_tags=False)
+            out_seq_list.append(newseq)
+    return out_seq_list, out_tag_list
+
+### flattens a 3-d list and returns 2d list
+def flatten_3d_list(ls):
+    return [item for sublist in ls for item in sublist]
 

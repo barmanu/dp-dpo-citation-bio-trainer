@@ -24,7 +24,6 @@ class Featurizer(object):
         data_dict['labels'] = encodedLabel
         
         if self.feat_config['lstm_feats']:
-            
             # fit and transform sequence
             word_seq, tokenizer = self.doc_sequencer.fit_transform(padded_textarray)
             # create data dictionary
