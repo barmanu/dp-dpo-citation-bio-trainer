@@ -30,7 +30,7 @@ def get_custom_feats(data_ls):
 def pad_custom_feats(feats, num_feats, maxlen):
     for i in range(len(feats)):
         for j in range(len(feats[i])):
-            if len(feats[i][j]) < 100:
+            if len(feats[i][j]) < maxlen:
                 num_pads = maxlen - len(feats[i][j])
                 feats[i][j] += [[0]*num_feats]*num_pads
     return feats

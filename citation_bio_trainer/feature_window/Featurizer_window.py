@@ -13,7 +13,7 @@ class Featurizer_window(object):
         self.tags2index = {'B-CIT': 1, 'I-CIT': 0}
         self.feat_config = feat_config
         self.maxlen = feat_config['window']
-
+        
     
     def fit_transform(self, textlist, taglist):
         ### LSTM Features
@@ -21,7 +21,7 @@ class Featurizer_window(object):
         
         textlist_s = [i.split(" ") for i in textlist]
         taglist_s = [i.split(" ") for i in taglist]
-        textlist_win, taglist_win = sliding_window_list(textlist_s, taglist_s)
+        textlist_win, taglist_win = sliding_window_list(textlist_s, taglist_s, winSize=self.feat_config['window'], step=self.feat_config['step'], has_tags=True)
         textlist_flatten = flatten_3d_list(textlist_win)
         taglist_flatten = flatten_3d_list(taglist_win)
         
@@ -42,7 +42,7 @@ class Featurizer_window(object):
         
         if self.feat_config['custom_feats']:
             custom_feats = get_custom_feats(textlist_s)
-            custom_feats_win,dummy = sliding_window_list(custom_feats, has_tags=False)
+            custom_feats_win,dummy = sliding_window_list(custom_feats, winSize=self.feat_config['window'], step=self.feat_config['step'], has_tags=False)
             custom_feats_win = pad_custom_feats(custom_feats_win, 5, self.maxlen)
             custom_feats_flatten = flatten_3d_list(custom_feats_win)
             data_dict['custom_feats'] = np.array(custom_feats_flatten)
@@ -78,16 +78,15 @@ class Featurizer_window(object):
         # pad text and tag
         if len(taglist) == 0:
             has_tags = False 
-        
         textlist_s = [i.split(" ") for i in textlist]
         taglist_s = [i.split(" ") for i in taglist]
-        textlist_win, taglist_win = sliding_window_list(textlist_s, taglist_s)
+        textlist_win, taglist_win = sliding_window_list(textlist_s, taglist_s, winSize=self.feat_config['window'], step=self.feat_config['step'], has_tags=has_tags)
         textlist_flatten = flatten_3d_list(textlist_win)
         taglist_flatten = flatten_3d_list(taglist_win)
         data_dict['sentences_window'] = textlist_flatten
         data_dict['tags_window'] = taglist_flatten
         # pad text and tag
-        padded_textarray, padded_tagarray = pad_sequences(textlist_flatten, self.maxlen, taglist_flatten)
+        padded_textarray, padded_tagarray = pad_sequences(textlist_flatten, self.maxlen, taglist_flatten, has_tags=has_tags)
         # encode the label
         if has_tags:
             encodedLabel = np.array([[self.tags2index[w] for w in s] for s in padded_tagarray])
@@ -97,7 +96,7 @@ class Featurizer_window(object):
             
         if self.feat_config['custom_feats']:
             custom_feats = get_custom_feats(textlist_s)
-            custom_feats_win,dummy = sliding_window_list(custom_feats, has_tags=False)
+            custom_feats_win,dummy = sliding_window_list(custom_feats, winSize=self.feat_config['window'], step=self.feat_config['step'], has_tags=False)
             custom_feats_win = pad_custom_feats(custom_feats_win, 5, self.maxlen)
             custom_feats_flatten = flatten_3d_list(custom_feats_win)
             data_dict['custom_feats'] = np.array(custom_feats_flatten)
@@ -116,7 +115,10 @@ class Featurizer_window(object):
             sp = SpacyFeaturizer_window()
             df = pd.DataFrame([])
             df['text'] = np.array([" ".join(i) for i in textlist_flatten], dtype='object')
-            spacy_df = sp.get_spacy_dask(df, blocksize=1000)
+            if self.feat_config['spacy_mode'] == 'production':
+                spacy_df = sp.get_array_from_df_combined(df)
+            else:
+                spacy_df = sp.get_spacy_dask(df, blocksize=1000)
             spacy_feats = list(spacy_df['spacy_bin']) 
             spacy_feats = [i.tolist() for i in spacy_feats]
             spacy_feats_win = pad_spacy_feats(spacy_feats, 12, self.maxlen)
