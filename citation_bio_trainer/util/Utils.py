@@ -168,6 +168,11 @@ def sliding_window_seq(sequence, tags=[], winSize=100,step=1, has_tags=True):
     out_tags = []
     if step > winSize:
         print("step bigger than window")
+    
+    if len(sequence) <= winSize:
+        out_seq.append(sequence)
+        out_tags.append(tags)
+        return out_seq, out_tags
         
     numOfChunks = int(((len(sequence)-winSize)/step)+2)
     if has_tags:
