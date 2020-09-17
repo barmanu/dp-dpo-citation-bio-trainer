@@ -43,7 +43,11 @@ class ETL:
         return arr
 
     def data_and_xydict(
-            self, train_df_file_paths: list, test_df_file_paths, max_len: int, feature_suffix: str
+        self,
+        train_df_file_paths: list,
+        test_df_file_paths,
+        max_len: int,
+        feature_suffix: str,
     ):
         """
         :param df_file_paths:
@@ -67,10 +71,10 @@ class ETL:
         )
 
         if (
-                os.path.exists(train_x_path)
-                and os.path.exists(train_y_path)
-                and os.path.exists(test_x_path)
-                and os.path.exists(test_y_path)
+            os.path.exists(train_x_path)
+            and os.path.exists(train_y_path)
+            and os.path.exists(test_x_path)
+            and os.path.exists(test_y_path)
         ):
 
             train_x = ETL.read_nparray(train_x_path)
@@ -80,16 +84,20 @@ class ETL:
 
             return (
                 {
-                    "train": {"x": train_x, "y": train_y, },
-                    "test": {"x": test_x, "y": test_y, },
+                    "train": {
+                        "x": train_x,
+                        "y": train_y,
+                    },
+                    "test": {
+                        "x": test_x,
+                        "y": test_y,
+                    },
                 },
                 label_dict,
             )
         else:
 
-
             print("\n ### Data Processing Started ...")
-
 
             all_labs = ["I-CIT", "B-CIT"]
             all_labs = list(all_labs)
@@ -117,15 +125,14 @@ class ETL:
                     cit_sec = df.x.tolist()
                     cit_lab = df.y.tolist()
                     cit_lab = [
-                        [0, 1] if x.startswith("B") else [1, 0] for x in cit_lab  # label creation
+                        [0, 1] if x.startswith("B") else [1, 0]
+                        for x in cit_lab  # label creation
                     ]
                     tfhub_x = [np.array(x) for x in self.tfhub(cit_sec)]
                     x = []
                     padd_len = max_len - len(tfhub_x)
                     for i in range(len(tfhub_x)):
-                        x.append(
-                            tfhub_x[i]
-                        )
+                        x.append(tfhub_x[i])
                     for i in range(padd_len):
                         x.append(dummy_x)
                         cit_lab.append(dummy_y)
@@ -153,15 +160,14 @@ class ETL:
                     cit_sec = df.x.tolist()
                     cit_lab = df.y.tolist()
                     cit_lab = [
-                        [0, 1] if x.startswith("B") else [1, 0] for x in cit_lab  # label creation
+                        [0, 1] if x.startswith("B") else [1, 0]
+                        for x in cit_lab  # label creation
                     ]
                     tfhub_x = [np.array(x) for x in self.tfhub(cit_sec)]
                     x = []
                     padd_len = max_len - len(tfhub_x)
                     for i in range(len(tfhub_x)):
-                        x.append(
-                            tfhub_x[i]
-                        )
+                        x.append(tfhub_x[i])
                     for i in range(padd_len):
                         x.append(dummy_x)
                         cit_lab.append(dummy_y)
