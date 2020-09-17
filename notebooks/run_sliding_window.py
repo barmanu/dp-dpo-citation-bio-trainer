@@ -91,8 +91,8 @@
      "name": "stdout",
      "output_type": "stream",
      "text": [
-      "CPU times: user 2min 33s, sys: 1.25 s, total: 2min 34s\n",
-      "Wall time: 2min 45s\n"
+      "CPU times: user 2min 34s, sys: 1.15 s, total: 2min 35s\n",
+      "Wall time: 2min 46s\n"
      ]
     }
    ],
@@ -105,6 +105,26 @@
     "sentences_train, sent_tags_train = load_from_folder(train_data_path)\n",
     "sentences_test, sent_tags_test = load_from_folder(test_data_path)\n",
     "sentences_eval1, sent_tags_eval1 = load_from_folder(eval_without_intra_newline_path)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 5,
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "'1 ) J. Chang et al . , “ 12.1 A 7 nm 256Mb SRAM in high - k metal - gate FinFET technology with write - assist circuitry for low - VMIN applications , ” 2017 IEEE International Solid - State Circuits Conference ( ISSCC ) , San Francisco , CA , 2017 , pp . 206 - 207 . \\n 2 ) T. Standaert et al . , “ BEOL process integration for the 7 nm technology node , ” 2016 IEEE International Interconnect Technology Conference / Advanced Metallization Conference ( IITC / AMC ) , San Jose , CA , 2016 , pp . 2 - 4 . \\n 3 ) \\n https://www-03.ibm.com/press/us/en/pressrelease/47301.wss \\n 4 ) https://newsroom.intel.com/news-releases/intel-supports-american-innovation-7-billion-investment-next-generation-semiconductor-factory-arizona/ \\n 5 ) Standard Test Methods of Bitumen and Bituminous Mixtures For Highway Engineering JTJ E20 - \\n 2011 , China Communications Press \\n , Beijing , 2011 ( in Chinese ) . \\n 6 ) Specifications for Design of Highway Asphalt Pavement JTG D50 - 2006 , China Communications Press , Beijing , \\n 2006 ( in Chinese ) . \\n 7 ) Bullough C , Gatzen C , Jakiel C , Koller M , Nowi A , Zunft S. Advanced adiabatic compressed air energy storage for the integration of wind energy . In : EWEC 2004 : Proceedings of the European wind energy conference . London , UK : November 22 - 5 2004 . \\n 8) Xu , S. , Nam , S.M. , Kim , J.H. , Das , R. , Choi , S.K. , Nguyen \\n , T.T. , Quan , X. , Choi , S.J. , Chung , C.H. , Lee , E.Y. , Lee , I.K. , Wiederkehr , A. , Wollheim , C.B. , Cha , S.K. , Park , K.S. , 2015 . Palmitate induces ER calcium depletion and apoptosis in mouse podocytes subsequent to mitochondrial oxidative stress . Cell Death Dis 6 , e1976 . \\n 9 ) Balistrocchi , M. , Grossi , G. , Bacchi , B. , 2013 . Deriving a practical analytical - probabilistic method to size flood routing reservoirs . \\n Adv . Water Resour \\n . , 62 , Part A , 37–46 . http://dx.doi.org/10.1016/j.advwatres.2013.09.018 . \\n 10 ) Bergmann , H. , Sackl , B. , 1989 . Determination of design flood hydrographs based on regional hydrological data . IAHS Publ.no . 181 , 261–269 . \\n 11 ) Butera , I. , Tanda , M.G. , 2006 . Analysing river bank seepage with a synthetic design hydrograph . P. I. Civil Eng.-Wat . M. 159 ( 2 ) , 119 - 127 \\n . http://dx.doi.org/10.1680/wama.2006.159.2.119Castellarin , A.,Kohnova , S.,Gaal , L.,Fleig , A.,Salinas , J.L.,Toumazis , A.,Kjeldsen , T.R.,Macdonald , N. , 2012.Review of applied - statistical methods for flood - frequency analysis in Europe . NERC / Centre for Ecology & Hydrology , 122pp . ( ESSEM COST Action ES0901 ) . \\n 12 ) Franchini , \\n M. , Galeati , G. , 2000 . Comparative analysis \\n of some \\n methods for deriving the expected flood reduction curve in the frequency domain . Hydrol . Earth Syst . Sci . 4 ( 1 ) 155–172 . http://dx.doi.org/10.5194/hess-4-155-2000 . \\n 13 ) Gräler , \\n B. , van den Berg , M.J. , Vandenberghe , S. , Petroselli , A. , Grimaldi , S. , De Baets , B. , Verhoest , N.E.C. , 2013 . Multivariate return periods in hydrology : a critical and practical review \\n focusing on synthetic design hydrograph estimation . Hydrol . Earth Syst . Sci . 17 , 1281–1296 . http://dx.doi.org/10.5194/hess-17-1281-2013 . \\n 14 ) Keifer , C.J. , Chu , H.H. 1957 . Synthetic storm pattern for drainage design , J. Hydr . Eng . Div- ASCE 83 ( 4),1332.1–1332.25 . \\n 15 ) NERC ( National Environmental Research \\n Council ) \\n , 1975 . Flood Studies Report , vol . 1 , London . \\n 16 ) \\n Salvadori , G. , De Michele , C. , 2004 . Frequency analysis via copulas \\n : theoretical aspects and applications to hydrological \\n events . Water Resour Res 40 ( 12 ) , WR003133 . http://dx.doi.org/10.1029/2004WR003133 . \\n 17 ) Sauquet , E. , Ramos , M.H. , Chapel , L. , Bernardara , P. , 2008 . Streamflow scaling properties : investigating characteristic scales from different statistical approaches . Hydrol . Process 22 ( 17 ) , 3462–3475 . http://dx.doi.org/10.1002/hyp.6952 . \\n 18 ) ECR , 2006 . European Commission Regulation No . 1907/2006 Concerning the Registration Evaluation Authorisation and Restriction of Chemicals ( REACH ) establishing a European Chemicals Agency Amending Directive 1999/45 / EC and Repealing Council Regulation ( EEC ) No . 793/93 and Commission Regulation ( EC ) No . 1488/94 as well as Council Directive 76/769 / EEC and Commission Directives 91/155 / EEC 93/67 / EEC 93/105 / EC and 2000/21 / EC . December 18 , 2006 . \\n 19 ) ECR , 2008 . European Commission Regulation No . 629/2008 Amending Regulation ( EC ) No . 1881/2006 Setting Maximum Levels for Certain Contaminants in Foodstuffs . \\n 20 ) ECR , 2011a . European Commission Regulation No . 835/2011 Amending Regulation ( EC ) No . 1881/2006 as Regards Maximum Levels for Polycyclic Aromatic Hydrocarbons in Foodstuffs . \\n 21 ) ECR , 2011b . European Commission Regulation No . 1259/2011 Amending Regulation ( EC ) No . 1881/2006 as Regards Maximum Levels for Dioxins , Dioxin - like PCBs and Non - dioxin - like PCBs in Foodstuffs . \\n 22 ) ECR , 2014 . European Commission Regulation No . 488/2014 Amending Regulation ( EC ) No . 1881/2006 as Regards Maximum Levels of Cadmium in Foodstuffs . \\n 23 ) D.R. Tobergte , S. Curtis , Environmentally Benign Photocatalysts Applications of Titanium Oxide - based Materials , n.d . doi:10.1017 / CBO9781107415324.004 . \\n 24 ) Zhu , Y. , Wang , H. , Jin , Y. , Wu , D. , & Zhou , L. ( 2006 ) . Texture synthesis for repairing damaged images . US Patent 7,012,624 . \\n'"
+      ]
+     },
+     "execution_count": 5,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "sentences_train[0]"
    ]
   },
   {
