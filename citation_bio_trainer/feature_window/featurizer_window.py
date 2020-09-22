@@ -23,7 +23,7 @@ class Featurizer_window(object):
         self.feat_config = feat_config
         self.maxlen = feat_config["window"]
 
-    def fit_transform(self, textlist_s, taglist_s):
+    def fit_transform(self, nlp, textlist_s, taglist_s):
         ### LSTM Features
         data_dict = {}
         textlist_win, taglist_win = sliding_window_list(
@@ -72,8 +72,9 @@ class Featurizer_window(object):
             data_dict["custom_feats"] = np.array(custom_feats_flatten)
 
         ### Spacy Features
+        
         if self.feat_config["spacy_feats"]:
-            sp = SpacyFeaturizer_window()
+            sp = SpacyFeaturizer_window(nlp)
             df = pd.DataFrame([])
             df["text"] = np.array(
                 [" ".join(i) for i in padded_textarray], dtype="object"
@@ -84,7 +85,7 @@ class Featurizer_window(object):
             data_dict["spacy_num_feats"] = np.array(spacy_feats)
         return data_dict, tokenizer, self.maxlen
 
-    def transform(self, textlist_s, taglist_s=[], has_tags=True):
+    def transform(self, nlp, textlist_s, taglist_s=[], has_tags=True):
         data_dict = {}
         # pad text and tag
         if len(taglist_s) == 0:
@@ -137,7 +138,7 @@ class Featurizer_window(object):
 
         ### Spacy Features
         if self.feat_config["spacy_feats"]:
-            sp = SpacyFeaturizer_window()
+            sp = SpacyFeaturizer_window(nlp)
             df = pd.DataFrame([])
             df["text"] = np.array(
                 [" ".join(i) for i in textlist_flatten], dtype="object"

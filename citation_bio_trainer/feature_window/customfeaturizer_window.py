@@ -1,7 +1,6 @@
 import numpy as np
 
 def get_custom_feats(data_ls):
-    # feat_arr = np.zeros((len(data_ls), maxlen, 5), dtype='int8') #[[[0]* 5]* maxlen]* len(data_ls)
     data_feat = []
     for ind in range(len(data_ls)):
         sent_ls = data_ls[ind]

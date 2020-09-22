@@ -100,7 +100,8 @@ class SpacyFeaturizer_window(object):
         self.num_features = True
         self.cat_features = False
         self.gzt_features = False
-
+        self.nlp = nlp
+        self.nlp.tokenizer = Tokenizer(nlp.vocab)
     def get_array_from_df_combined(self, df):
 
         rows = df.text.tolist()
@@ -109,10 +110,6 @@ class SpacyFeaturizer_window(object):
         ]  ## as spacy cannot handle consecutive newlines
         sep = " "
         text = sep.join(rows)
-        nlp = sp.load("en_core_web_sm", disable=["parser", "ner"])
-        nlp.tokenizer = Tokenizer(
-            nlp.vocab
-        )  ## to make spacy not to split in ' and other characters
 
         if nlp.max_length < len(text):
             nlp.max_length = 1 + len(text)
